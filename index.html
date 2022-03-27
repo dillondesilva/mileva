@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>NeutralinoJs sample app</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <script type="module">
+      import { LaTeXJSComponent } from "latex.mjs"
+      customElements.define("latex-js", LaTeXJSComponent)
+    </script>
+    <script src="node_modules/latex.js/dist/latex.js"></script>
+  </head>
+  <body style="padding: 1vw;">
+    <div id="info"></div>
+    <br/>
+    <div style="display: flex; flex-direction: row;">
+      <div style="flex-direction: column; border-right: 1px solid black;">
+        <h1>Editor</h1>
+        <div style="padding: 1vh;">
+          <textarea type="text" style="width: 45vw; height: 80vh;" id="editorText"></textarea>
+        </div>
+      </div>
+      <div style="flex-direction: column; padding-left: 1vh;">
+          <h1>Preview</h1>
+          <div id="previewDisplay"></div>
+      </div>
+    </div>
+    <!-- Neutralino.js client. This file is gitignored, 
+        because `neu update` typically downloads it.
+        Avoid copy-pasting it. 
+        -->
+    <!-- <script>
+      let editorText = document.getElementById("editorText");
+      let previewDisplay = document.getElementById("previewDisplay");
+      console.log(editorText);
+      console.log(previewDisplay);
+
+      editorText.addEventListener("input", (e) => {
+          let generator = new latexjs.HtmlGenerator({ hyphenate: false })
+          let doc = latexjs.parse(e.target.value, { generator: generator })
+          console.log(doc.htmlDocument())
+          previewDisplay.src = doc.htmlDocument();
+      })
+    </script> -->
+    <script>
+      let editorText = document.getElementById("editorText");
+      let previewDisplay = document.getElementById("previewDisplay");
+
+      editorText.addEventListener("input", (e) => {
+        var text = e.target.value
+  
+        var generator = new latexjs.HtmlGenerator({ hyphenate: false })
+
+        generator = latexjs.parse(text, { generator: generator })
+
+        document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/"))
+        document.head.appendChild(generator.stylesAndScripts(""))
+        previewDisplay.innerHTML = generator.domFragment().children[0].innerHTML;
+        // document.body.appendChild(generator.domFragment())
+      })
+    </script>
+    <script src="./main.js"></script>
+  </body>
+</html>
