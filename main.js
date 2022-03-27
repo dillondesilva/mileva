@@ -3,15 +3,14 @@ const path = require("path");
 
 const loadMainWindow = () => {
     const mainWindow = new BrowserWindow({
-        width : 1200,
-        height: 800,
+        width : 1280,
+        height: 720,
         webPreferences: {
             nodeIntegration: true
         }
     });
 
-    mainWindow.webContents.openDevTools();
-    mainWindow.loadFile(path.join(__dirname, "index.html"));
+    mainWindow.loadFile(path.join(__dirname, "editor.html"));
 }
 
 app.on("ready", loadMainWindow);

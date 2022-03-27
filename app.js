@@ -1,5 +1,3 @@
-const { parse, HtmlGenerator } = require('latex.js')
-
 let editorText = document.getElementById("editorText");
 let previewDisplay = document.getElementById("previewDisplay");
 console.log(editorText);
