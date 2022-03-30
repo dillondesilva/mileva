@@ -3,15 +3,17 @@
 .sidebarComponent {
     height: 100vh;
     width: 18vw;
-    background-color: #262626;
+    background-color: #FFFFFF;
     position: absolute;
+    border-right: 0.7px solid #2E4159;
 }
 
 .topbarComponent {
     width: 100vw;
     height: 7vh;
-    background-color: #262626;
+    background-color: #F6F6F6;
     position: absolute;
+    border-bottom: 0.5px solid black;
 }
 
 .editor {
@@ -19,27 +21,56 @@
     left: 18vw;
     width: 41vw;
     height: 93vh;
-    background-color: #F6F6F6;
+    background-color: #222e3d;
     border: 0.1px solid black;
     position: absolute; 
 }
 
-.preview {
+.previewDisplay {
     top: 7vh;
     left: 59vw;
     width: 41vw;
     height: 93vh;
-    background-color: #F6F6F6;
-    border: 0.1px solid black;
-    position: absolute; 
+    padding: 1vw;
+    background-color: #FFFFFF;
+    position: absolute;
+}
+
+.lineNumbers {
+    height: 93vh;
+    width: 3vw;
+    background-color: #222e3d;
+    position: absolute;
 }
 
 textarea {
+    left: 3vw;
+    width: 38vw;
+    height: 93vh;
     border: 0;
-    background-color: #F6F6F6;
-
+    background-color: #2E4159;
+    padding-top: 1vh;
+    padding-left: 1vh;
+    position: absolute;
+    color: white;
 }
 
 textarea:focus { 
     outline: none !important;
+}
+
+.sidebarBtn {
+    border-radius: 1vw;
+    width: 4vw;
+    height: 4vw;
+    border: 0.8px solid #2E4159;
+    background-color: #4F4D8C;
+    color: white;
+}
+
+.sidebarButtons {
+    top: 10vh;
+    justify-content: space-between;
+    display: flex;
+    position: absolute;
 }

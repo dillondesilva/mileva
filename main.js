@@ -10,6 +10,7 @@ const loadMainWindow = () => {
         }
     });
 
+    mainWindow.webContents.openDevTools();
     mainWindow.loadFile(path.join(__dirname, "editor.html"));
 }
 
