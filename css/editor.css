@@ -29,11 +29,12 @@
 .previewDisplay {
     top: 7vh;
     left: 59vw;
-    width: 41vw;
-    height: 93vh;
+    width: 34vw;
+    height: 48vw;
+    overflow: scroll;
     padding: 1vw;
-    background-color: #FFFFFF;
     position: absolute;
+    border: 0.5px solid black;
 }
 
 .lineNumbers {
@@ -63,9 +64,18 @@ textarea:focus {
     border-radius: 1vw;
     width: 4vw;
     height: 4vw;
-    border: 0.8px solid #2E4159;
-    background-color: #4F4D8C;
-    color: white;
+    border: 3px solid black;
+    background-color: #ffffff;
+    color: black;
+}
+
+.sidebarBtn:hover {
+    background-color: #f6f6f6;
+}
+
+.sidebarBtnIcon {
+    width: 1.4vw;
+    height: 1.4vw;
 }
 
 .sidebarButtons {
@@ -73,4 +83,12 @@ textarea:focus {
     justify-content: space-between;
     display: flex;
     position: absolute;
+}
+
+.sidebarBtnBuffer {
+    padding: 0.8vw;
+}
+
+body {
+    overflow: hidden;
 }

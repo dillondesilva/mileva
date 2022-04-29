@@ -17,9 +17,21 @@
         <div class="sidebar">
             <div class="sidebarComponent">
                 <div class="sidebarButtons">
-                    <button class="sidebarBtn">1</button>
-                    <button class="sidebarBtn">2</button>
-                    <button class="sidebarBtn">3</button>
+                    <div class="sidebarBtnBuffer">
+                      <button class="sidebarBtn">
+                        <img src="pi.png" class="sidebarBtnIcon"/>
+                      </button>
+                    </div>
+                    <div class="sidebarBtnBuffer">
+                      <button class="sidebarBtn">
+                        <img src="section.png" class="sidebarBtnIcon"/>
+                      </button>
+                    </div>
+                    <div class="sidebarBtnBuffer">
+                      <button class="sidebarBtn">
+                        <img src="parabola.png" class="sidebarBtnIcon"/>
+                      </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -34,7 +46,7 @@
   Type your LaTeX in here...
 
 \end{document}</div>
-        <div class="previewDisplay" id="previewDisplay"></div>
+        <div class="previewDisplay" id="previewDisplay">Type some LaTex to get started</div>
     </div>
     <script>
       var editor = ace.edit("editor", {selectionStyle: "text"});
