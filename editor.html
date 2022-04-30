@@ -24,22 +24,45 @@
                     </div>
                     <div class="sidebarBtnBuffer">
                       <button class="sidebarBtn">
-                        <img src="section.png" class="sidebarBtnIcon"/>
+                        <img src="parabola.png" class="sidebarBtnIcon"/>
                       </button>
                     </div>
                     <div class="sidebarBtnBuffer">
                       <button class="sidebarBtn">
-                        <img src="parabola.png" class="sidebarBtnIcon"/>
+                        <img src="section.png" class="sidebarBtnIcon"/>
                       </button>
                     </div>
                 </div>
-            </div>
+                <div class="sidebarButtonsRowTwo">
+                  <div class="sidebarBtnBuffer">
+                    <button class="sidebarBtn">
+                      <img src="add.png" class="sidebarBtnIcon"/>
+                    </button>
+                  </div>
+                  <div class="sidebarBtnBuffer">
+                    <button class="sidebarBtn">
+                      <img src="save.png" class="sidebarBtnIcon"/>
+                    </button>
+                  </div>
+                  <div class="sidebarBtnBuffer">
+                    <button class="sidebarBtn">
+                      <img src="export.png" class="sidebarBtnIcon"/>
+                    </button>
+                  </div>
+              </div>
+            </div>  
         </div>
         <div class="topbar">
             <div class="navbar topbarComponent">
             </div>
         </div>
-        <div id="editor" class="editor">\documentclass{article}
+        <div id="editor" class="editor" focus=true>\documentclass{article}
+
+\usepackage{comment, multicol}
+\usepackage{hyperref}
+
+\usepackage{calc,pict2e,picture}
+\usepackage{textgreek,textcomp,gensymb,stix}
 
 \begin{document}
 
@@ -51,8 +74,7 @@
     <script>
       var editor = ace.edit("editor", {selectionStyle: "text"});
       editor.resize()
-      editor.setTheme("ace/theme/twilight");
-      editor.setTheme("ace/theme/monokai");
+      editor.setTheme("ace/theme/dawn");
       editor.getSession().setMode("ace/mode/latex");
 	    editor.getSession().setUseSoftTabs(true);
 
