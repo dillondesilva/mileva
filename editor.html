@@ -19,44 +19,64 @@
                 <div class="sidebarButtons">
                     <div class="sidebarBtnBuffer">
                       <button class="sidebarBtn">
-                        <img src="pi.png" class="sidebarBtnIcon"/>
+                        <img src="functions.svg" class="sidebarBtnIcon"/>
                       </button>
                     </div>
                     <div class="sidebarBtnBuffer">
                       <button class="sidebarBtn">
-                        <img src="parabola.png" class="sidebarBtnIcon"/>
+                        <img src="grid.svg" class="sidebarBtnIcon"/>
                       </button>
                     </div>
                     <div class="sidebarBtnBuffer">
                       <button class="sidebarBtn">
-                        <img src="section.png" class="sidebarBtnIcon"/>
+                        <img src="table.svg" class="sidebarBtnIcon"/>
                       </button>
                     </div>
                 </div>
                 <div class="sidebarButtonsRowTwo">
                   <div class="sidebarBtnBuffer">
                     <button class="sidebarBtn">
-                      <img src="add.png" class="sidebarBtnIcon"/>
+                      <img src="add.svg" class="sidebarBtnIcon"/>
                     </button>
                   </div>
                   <div class="sidebarBtnBuffer">
                     <button class="sidebarBtn">
-                      <img src="save.png" class="sidebarBtnIcon"/>
+                      <img src="save.svg" class="sidebarBtnIcon"/>
                     </button>
                   </div>
                   <div class="sidebarBtnBuffer">
                     <button class="sidebarBtn">
-                      <img src="export.png" class="sidebarBtnIcon"/>
+                      <img src="share.svg" class="sidebarBtnIcon"/>
                     </button>
                   </div>
-              </div>
-            </div>  
+                </div>
+                <div class="folderDiv">
+                  <div class="folderDisplay">
+                    <h3 class="folderHeading">Folders</h3> 
+                    <p>Let's get to work. Start by opening a folder</p>
+                    <div class="openFolderBtnBounding">
+                      <button class="openFolderBtn">Open Folder</button>
+                    </div>
+                  </div>
+                </div> 
+            </div> 
         </div>
         <div class="topbar">
             <div class="navbar topbarComponent">
+              <div class="logo">
+                <img src="mileva.png" class="logoImg"/>
+              </div>
             </div>
         </div>
-        <div id="editor" class="editor" focus=true>\documentclass{article}
+        <div class="editor">
+          <div class="tabSelector">
+            <div class="tabsGrouped">
+              <div class="tab">
+                <p class="tabText">untitled.tex</p>
+              </div>
+            </div>
+          </div>
+          <div id="editor" class="editorArea" focus=true>\documentclass{article}
 
 \usepackage{comment, multicol}
 \usepackage{hyperref}
@@ -64,11 +84,37 @@
 \usepackage{calc,pict2e,picture}
 \usepackage{textgreek,textcomp,gensymb,stix}
 
+\title{An Introduction To Mileva}
+\author{Built with $\varheartsuit$ by Dillon de Silva and William Kennedy}
+\date{2022}
+
 \begin{document}
 
-  Type your LaTeX in here...
+\maketitle
 
-\end{document}</div>
+\begin{abstract}
+Mileva is the world's easiest {\LaTeX} editor to use! With a beautifully
+minimalistic design, we make it possible for anyone to write LaTeX. 
+Give it a go yourself!
+\end{abstract}
+
+\section*{Inserting Equations}
+
+Lopseum Ipsum Delor
+  
+\section*{Inserting Graphs}
+
+Lopseum Ipsum Delor
+
+\section*{Inserting Tables}
+
+Lopseum Ipsum Delor
+
+
+\end{document}
+                      
+          </div>   
+        </div>
         <div class="previewDisplay" id="previewDisplay">Type some LaTex to get started</div>
     </div>
     <script>
@@ -80,6 +126,14 @@
 
       // let editorText = document.getElementById("editorText");
       let previewDisplay = document.getElementById("previewDisplay");
+
+      var text = editor.getValue();
+      var generator = new latexjs.HtmlGenerator({ hyphenate: false })
+
+      generator = latexjs.parse(text, { generator: generator })
+      document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/"))
+      previewDisplay.innerHTML = generator.domFragment().children[0].innerHTML;
+      document.body.appendChild(generator.domFragment())
 
       editor.session.on("change", (e) => {
         var text = editor.getValue();
