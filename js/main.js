@@ -1,17 +1,22 @@
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
+const remote = require('@electron/remote/main');
 
 const loadMainWindow = () => {
     const mainWindow = new BrowserWindow({
         width : 1280,
         height: 720,
         webPreferences: {
-            nodeIntegration: true
+            nodeIntegration: true,
+            contextIsolation: false
         }
     });
 
+    remote.enable(mainWindow.webContents);
+    remote.initialize();
+
     mainWindow.webContents.openDevTools();
-    mainWindow.loadFile(path.join(__dirname, "editor.html"));
+    mainWindow.loadFile(path.join(__dirname, "../editor.html"));
 }
 
 app.on("ready", loadMainWindow);

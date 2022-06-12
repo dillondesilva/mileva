@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8">
     <title>NeutralinoJs sample app</title>
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/editor.css">
     <script type="module">
-      import { LaTeXJSComponent } from "latex.mjs"
+      import { LaTeXJSComponent } from "./js/latex.mjs"
       customElements.define("latex-js", LaTeXJSComponent)
     </script>
     <script src="node_modules/latex.js/dist/latex.js"></script>
@@ -18,35 +18,35 @@
             <div class="sidebarComponent">
                 <div class="sidebarButtons">
                     <div class="sidebarBtnBuffer">
-                      <button class="sidebarBtn">
-                        <img src="functions.svg" class="sidebarBtnIcon"/>
+                      <button class="sidebarBtn" id="functions">
+                        <img src="resources/svg/functions.svg" class="sidebarBtnIcon"/>
                       </button>
                     </div>
                     <div class="sidebarBtnBuffer">
-                      <button class="sidebarBtn">
-                        <img src="grid.svg" class="sidebarBtnIcon"/>
+                      <button class="sidebarBtn" id="grid">
+                        <img src="resources/svg/grid.svg" class="sidebarBtnIcon"/>
                       </button>
                     </div>
                     <div class="sidebarBtnBuffer">
-                      <button class="sidebarBtn">
-                        <img src="table.svg" class="sidebarBtnIcon"/>
+                      <button class="sidebarBtn" id="table">
+                        <img src="resources/svg/table.svg" class="sidebarBtnIcon"/>
                       </button>
                     </div>
                 </div>
                 <div class="sidebarButtonsRowTwo">
                   <div class="sidebarBtnBuffer">
-                    <button class="sidebarBtn">
-                      <img src="add.svg" class="sidebarBtnIcon"/>
+                    <button class="sidebarBtn" id="add">
+                      <img src="resources/svg/add.svg" class="sidebarBtnIcon"/>
                     </button>
                   </div>
                   <div class="sidebarBtnBuffer">
-                    <button class="sidebarBtn">
-                      <img src="save.svg" class="sidebarBtnIcon"/>
+                    <button class="sidebarBtn" id="save">
+                      <img src="resources/svg/save.svg" class="sidebarBtnIcon"/>
                     </button>
                   </div>
                   <div class="sidebarBtnBuffer">
-                    <button class="sidebarBtn">
-                      <img src="share.svg" class="sidebarBtnIcon"/>
+                    <button class="sidebarBtn" id="share">
+                      <img src="resources/svg/share.svg" class="sidebarBtnIcon"/>
                     </button>
                   </div>
                 </div>
@@ -55,7 +55,7 @@
                     <h3 class="folderHeading">Folders</h3> 
                     <p>Let's get to work. Start by opening a folder</p>
                     <div class="openFolderBtnBounding">
-                      <button class="openFolderBtn">Open Folder</button>
+                      <button class="openFolderBtn" id="directory">Open Folder</button>
                     </div>
                   </div>
                 </div> 
@@ -64,7 +64,7 @@
         <div class="topbar">
             <div class="navbar topbarComponent">
               <div class="logo">
-                <img src="mileva.png" class="logoImg"/>
+                <img src="resources/images/mileva.png" class="logoImg"/>
               </div>
             </div>
         </div>
@@ -117,40 +117,7 @@ Lopseum Ipsum Delor
         </div>
         <div class="previewDisplay" id="previewDisplay">Type some LaTex to get started</div>
     </div>
-    <script>
-      var editor = ace.edit("editor", {selectionStyle: "text"});
-      editor.resize()
-      editor.setTheme("ace/theme/dawn");
-      editor.getSession().setMode("ace/mode/latex");
-	    editor.getSession().setUseSoftTabs(true);
-
-      // let editorText = document.getElementById("editorText");
-      let previewDisplay = document.getElementById("previewDisplay");
-
-      var text = editor.getValue();
-      var generator = new latexjs.HtmlGenerator({ hyphenate: false })
-
-      generator = latexjs.parse(text, { generator: generator })
-      document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/"))
-      previewDisplay.innerHTML = generator.domFragment().children[0].innerHTML;
-      document.body.appendChild(generator.domFragment())
-
-      editor.session.on("change", (e) => {
-        var text = editor.getValue();
-        console.log(text)
-        var generator = new latexjs.HtmlGenerator({ hyphenate: false })
-
-        try {
-          generator = latexjs.parse(text, { generator: generator })
-
-          document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/"))
-          previewDisplay.innerHTML = generator.domFragment().children[0].innerHTML;
-          document.body.appendChild(generator.domFragment())
-        } catch (error) {
-          console.log(error)
-        }
-      })
-    </script>
-    <script src="./main.js"></script>
+    <script src="./js/main.js"></script>
+    <script src="./js/app.js"></script>
   </body>
 </html>
