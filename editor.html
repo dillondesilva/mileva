@@ -55,9 +55,8 @@
                     <h3 class="folderHeading">Folders</h3> 
                     <p>Let's get to work. Start by opening a folder</p>
                     <div class="openFolderBtnBounding">
-                      <button class="openFolderBtn" id="directory">Open Folder</button>
+                      <button class="button is-info openFolderBtn" id="directory">Open Folder</button>
                     </div>
-                  </div>
                 </div> 
             </div> 
         </div>
@@ -70,11 +69,40 @@
         </div>
         <div class="editor">
           <div class="tabSelector">
-            <div class="tabsGrouped">
-              <div class="tab">
-                <p class="tabText">untitled.tex</p>
-              </div>
-            </div>
+            <div class="tabs is-boxed">
+              <ul>
+                <li class="is-active">
+                  <a>
+                    <span class="icon-text">
+                      <span>untitled.tex</span>
+                      <span class="icon">
+                        <i class="fa-solid fa-xmark"></i>
+                      </span>
+                    </span>
+                  </a>
+                </li>
+                <li>
+                  <a>
+                    <span class="icon-text">
+                      <span>untitled.tex</span>
+                      <span class="icon">
+                        <i class="fa-solid fa-xmark"></i>
+                      </span>
+                    </span>
+                  </a>
+                </li>
+                <li>
+                  <a>
+                    <span class="icon-text">
+                      <span>untitled.tex</span>
+                      <span class="icon">
+                        <i class="fa-solid fa-xmark"></i>
+                      </span>
+                    </span>
+                  </a>
+                </li>
+              </ul>
+            </div>          
           </div>
           <div id="editor" class="editorArea" focus=true>\documentclass{article}
 
@@ -117,6 +145,7 @@ Lopseum Ipsum Delor
         </div>
         <div class="previewDisplay" id="previewDisplay">Type some LaTex to get started</div>
     </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="./js/main.js"></script>
     <script src="./js/app.js"></script>
   </body>
