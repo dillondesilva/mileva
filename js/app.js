@@ -4,6 +4,7 @@ const $ = require("jquery");
 const HOME_DIRECTORY = require('os').homedir();
 
 let editor;
+let pendingCalls = 0;
 
 window.onload = () => {
     createEditorInstance();
@@ -34,31 +35,33 @@ window.onload = () => {
                 for (const filePath of res.filePaths) {
                     $(directoryButton).css('display', 'none');
                     $('.openFolderBtnBounding').css('padding', '2vh');
-                    displayFolder(filePath, filePath).then(res => {
-                        //console.log(res);
-                        let folderIcons = document.querySelectorAll('.parentFolderIcon, .childFolderIcon');
 
-                        for (let folderIcon of folderIcons) {
-                            for (let child of folderIcon.children) {
+                    displayFolder(filePath, filePath);
+
+                    let folderIcons = document.querySelectorAll('.parentFolderIcon, .childFolderIcon');
+
+                    console.log(folderIcons);
+
+                    for (let folderIcon of folderIcons) {
+                        for (let child of folderIcon.children) {
+                            if (child.classList.contains('childFolderIcon')) {
+                                child.classList.add('hide');
+                            }
+                        }
+
+                        $(folderIcon).click(evt => {
+                            const target = $(evt.target).parent().parent();
+
+                            for (let child of $(target).children()) {
                                 if (child.classList.contains('childFolderIcon')) {
-                                    child.style.display = 'none';
+                                    child.classList.toggle('hide');
                                 }
                             }
-
-                            $(folderIcon).click(evt => {
-                                const target = $(evt.target).parent().parent();
-
-                                for (let child of target.children()) {
-                                    if (child.classList.contains('childFolderIcon')) {
-                                        child.style.display = 'block';
-                                    }
-                                }
-                            });
-                        }
-                    });
+                        });
+                    }
                 }
             }
-        }).catch(err => console.log(err));
+        });
     }
 }
 
@@ -111,91 +114,82 @@ function saveFile () {
     });
 }
 
-async function displayFolder (folderPath, parentPath, parentNode=true, parentEl=null) {
-    return new Promise (async (resolve, reject) => {
-        let folderName;
+function displayFolder (folderPath, parentPath, parentNode=true, parentEl=null) {
+    let folderName;
 
-        if (folderPath.match(/(\\[^\\]+)$/)) {
-            folderName = folderPath.match(/(\\[^\\]+)$/)[0];
-            folderName = folderName.substr(1, folderName.length);
-        } else {
-            folderName = folderPath;
-        }
+    if (folderPath.match(/(\\[^\\]+)$/)) {
+        folderName = folderPath.match(/(\\[^\\]+)$/)[0];
+        folderName = folderName.substr(1, folderName.length);
+    } else {
+        folderName = folderPath;
+    }
 
-        let folderBtnBounding = document.querySelector(".openFolderBtnBounding");
+    let folderBtnBounding = document.querySelector(".openFolderBtnBounding");
 
-        let folderEl;
+    let folderEl;
 
-        if (parentNode) {
+    if (parentNode) {
             /* 
             <div class="parentFolderIcon"> 
                 <span class="icon-text">
                     <span class="icon">
                         <i class="fas fa-caret-right"></i>
                     </span>
-                    <span>Folder</span>
                 </span>
             </div>
             */
 
-            let iconEl = document.createElement("i");
-            iconEl.classList.add("fas");
-            iconEl.classList.add("fa-caret-right");
+        let iconEl = document.createElement("i");
+        iconEl.classList.add("fas");
+        iconEl.classList.add("fa-caret-right");
 
-            let iconSpanEl = document.createElement("span");
-            iconSpanEl.classList.add("icon");
-            iconSpanEl.appendChild(iconEl);
+        let iconSpanEl = document.createElement("span");
+        iconSpanEl.classList.add("icon");
+        iconSpanEl.appendChild(iconEl);
 
-            let nameEl = document.createElement("span");
-            let nameNode = document.createTextNode(folderName);
-            nameEl.appendChild(nameNode);
+        let nameEl = document.createElement("span");
+        let nameNode = document.createTextNode(folderName);
+        nameEl.appendChild(nameNode);
 
-            let iconTextEl = document.createElement("span");
-            iconTextEl.classList.add("icon-text");
-            iconTextEl.appendChild(iconSpanEl);
-            iconTextEl.appendChild(nameEl);
+        let iconTextEl = document.createElement("span");
+        iconTextEl.classList.add("icon-text");
+        iconTextEl.appendChild(iconSpanEl);
+        iconTextEl.appendChild(nameEl);
 
-            folderEl = document.createElement("div");
-            folderEl.classList.add('parentFolderIcon');
-            folderEl.appendChild(iconTextEl);
+        folderEl = document.createElement("div");
+        folderEl.classList.add('parentFolderIcon');
+        folderEl.appendChild(iconTextEl);
 
-            folderBtnBounding.appendChild(folderEl);
-        } else {
-            let iconEl = document.createElement("i");
-            iconEl.classList.add("fas");
-            iconEl.classList.add("fa-caret-right");
+        folderBtnBounding.appendChild(folderEl);
+    } else {
+        let iconEl = document.createElement("i");
+        iconEl.classList.add("fas");
+        iconEl.classList.add("fa-caret-right");
 
-            let iconSpanEl = document.createElement("span");
-            iconEl.classList.add("icon");
-            iconSpanEl.appendChild(iconEl);
+        let iconSpanEl = document.createElement("span");
+        iconEl.classList.add("icon");
+        iconSpanEl.appendChild(iconEl);
 
-            let nameEl = document.createElement("span");
-            let nameNode = document.createTextNode(folderName);
-            nameEl.appendChild(nameNode);
+        let nameEl = document.createElement("span");
+        let nameNode = document.createTextNode(folderName);
+        nameEl.appendChild(nameNode);
 
-            let iconTextEl = document.createElement("span");
-            iconTextEl.classList.add("icon-text");
-            iconTextEl.appendChild(iconSpanEl);
-            iconTextEl.appendChild(nameEl);
+        let iconTextEl = document.createElement("span");
+        iconTextEl.classList.add("icon-text");
+        iconTextEl.appendChild(iconSpanEl);
+        iconTextEl.appendChild(nameEl);
 
-            folderEl = document.createElement("div");
-            folderEl.classList.add('childFolderIcon');
-            folderEl.appendChild(iconTextEl);
+        folderEl = document.createElement("div");
+        folderEl.classList.add('childFolderIcon');
+        folderEl.appendChild(iconTextEl);
 
-            parentEl.appendChild(folderEl);
+        parentEl.appendChild(folderEl);
+    }
+
+    fs.readdirSync(parentPath, {withFileTypes: true}).forEach(dirent => {
+        if (dirent.isDirectory()) {
+            displayFolder(dirent.name, path.join(parentPath, dirent.name), false, folderEl);
         }
-
-        fs.readdir(parentPath, {withFileTypes: true}, (err, dirents) => {
-            if (err) reject(err);
-
-            dirents.forEach(async dirent => {
-                if (dirent.isDirectory()) {
-                    await displayFolder(dirent.name, path.join(parentPath, dirent.name), false, folderEl);
-                }
-            });
-
-            resolve(folderEl);
-        });
-    });    
+    });
 }
 

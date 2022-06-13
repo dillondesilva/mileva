@@ -173,6 +173,10 @@ textarea:focus {
     position: absolute;
 }
 
+.hide {
+    display: none;
+}
+
 body {
     overflow: hidden;
 }
