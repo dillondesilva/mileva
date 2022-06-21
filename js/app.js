@@ -40,8 +40,6 @@ window.onload = () => {
 
                     let folderIcons = document.querySelectorAll('.parentFolderIcon, .childFolderIcon');
 
-                    console.log(folderIcons);
-
                     for (let folderIcon of folderIcons) {
                         for (let child of folderIcon.children) {
                             if (child.classList.contains('childFolderIcon')) {
@@ -55,7 +53,11 @@ window.onload = () => {
                             for (let child of $(target).children()) {
                                 if (child.classList.contains('childFolderIcon')) {
                                     child.classList.toggle('hide');
+                                } else if (child.classList.contains('icon-text')) {
+                                    $(child).children('.icon').children('i').toggleClass('fa-folder');
+                                    $(child).children('.icon').children('i').toggleClass('fa-folder-open');
                                 }
+
                             }
                         });
                     }
@@ -140,8 +142,8 @@ function displayFolder (folderPath, parentPath, parentNode=true, parentEl=null) 
             */
 
         let iconEl = document.createElement("i");
-        iconEl.classList.add("fas");
-        iconEl.classList.add("fa-caret-right");
+        iconEl.classList.add("fa-solid");
+        iconEl.classList.add("fa-folder");
 
         let iconSpanEl = document.createElement("span");
         iconSpanEl.classList.add("icon");
@@ -163,8 +165,8 @@ function displayFolder (folderPath, parentPath, parentNode=true, parentEl=null) 
         folderBtnBounding.appendChild(folderEl);
     } else {
         let iconEl = document.createElement("i");
-        iconEl.classList.add("fas");
-        iconEl.classList.add("fa-caret-right");
+        iconEl.classList.add("fa-solid");
+        iconEl.classList.add("fa-folder");
 
         let iconSpanEl = document.createElement("span");
         iconEl.classList.add("icon");
