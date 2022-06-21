@@ -168,6 +168,10 @@ textarea:focus {
     padding-left: 2vh;
 }
 
+.file:hover {
+    text-decoration: underline;
+}
+
 .openFolderBtn:hover {
     opacity: 0.9;
 }
