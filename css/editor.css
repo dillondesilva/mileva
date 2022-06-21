@@ -177,6 +177,32 @@ textarea:focus {
     display: none;
 }
 
+.graphingToolPopover {
+    top: 50%;
+    left: 50%;
+    width: 60vw;
+    height: 80vh;
+    margin: 0;
+    transform: translate(-50%,-50%);
+    z-index: 10;
+    background-color: white;
+    position: absolute;
+    display: none;
+}
+
+.graphingToolButtons {
+    bottom: 0;
+    position: absolute;
+    display: flex;
+    left: 50%;
+    padding-bottom: 3vh;
+    transform: translate("-50%", "0%");
+}
+
+.btnInsertBuffer {
+    padding: 3vw;
+}
+
 body {
     overflow: hidden;
 }

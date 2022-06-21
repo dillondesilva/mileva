@@ -6,6 +6,22 @@ const HOME_DIRECTORY = require('os').homedir();
 let editor;
 let pendingCalls = 0;
 
+const graphingToolPopover = document.getElementById('graphingToolPopover');
+const desmos = require('desmos');
+const elt = document.createElement('div');
+
+elt.setAttribute("id", "desmosCalc")
+elt.style.width = '60vw';
+elt.style.height = '70vh';
+elt.style.zIndex = 12;
+elt.style.position = 'absolute';
+elt.style.margin = '0 auto';
+elt.style.transform = 'translate(-50%, -0%)';
+elt.style.top = '0vh';
+elt.style.left = '50%';
+
+const calculator = desmos.GraphingCalculator(elt, {border: false})
+
 window.onload = () => {
     createEditorInstance();
 
@@ -13,6 +29,15 @@ window.onload = () => {
     saveButton.onclick = saveFile;
 
     const directoryButton = document.querySelector("#directory");
+
+    const gridButton = document.querySelector("#grid");
+    gridButton.onclick = graphingToolOpen;
+
+    const insertGraphButton = document.querySelector("#btnInsert");
+    btnInsert.onclick = insertGraph;
+
+    const cancelGraphButton = document.querySelector("#btnCancel");
+    btnCancel.onclick = cancelGraph;
 
     /*
     Required innerHTML
@@ -26,6 +51,8 @@ window.onload = () => {
         </span>
     </div> 
     */
+    
+    // document.body.append(elt)
 
     directoryButton.onclick = () => {
         dialog.showOpenDialog({
@@ -78,20 +105,34 @@ function createEditorInstance () {
     let generator = new latexjs.HtmlGenerator({ hyphenate: false })
 
     generator = latexjs.parse(text, { generator: generator })
-    document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/"))
+    document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/"));
     previewDisplay.innerHTML = generator.domFragment().children[0].innerHTML;
-    document.body.appendChild(generator.domFragment())
+    document.body.appendChild(generator.domFragment());
 
     editor.session.on("change", (e) => {
         let text = editor.getValue();
-        let generator = new latexjs.HtmlGenerator({ hyphenate: false })
+        let generator = new latexjs.HtmlGenerator({ hyphenate: false, CustomMacros: (function() {
+            var args      = CustomMacros.args = {},
+                prototype = CustomMacros.prototype;
+        
+            function CustomMacros(generator) {
+              this.g = generator;
+            }
+        
+            args['bf'] = ['HV']
+            prototype['bf'] = function() {
+              this.g.setFontWeight('bf')
+            };
+        
+            return CustomMacros;
+          }()) })
 
         try {
             generator = latexjs.parse(text, { generator: generator })
 
-            document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/"))
+            document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/"));
             previewDisplay.innerHTML = generator.domFragment().children[0].innerHTML;
-            document.body.appendChild(generator.domFragment())
+            document.body.appendChild(generator.domFragment());
         } catch (error) {
             console.log(error)
         }
@@ -193,3 +234,22 @@ function displayFolder (folderPath, parentPath, parentNode=true, parentEl=null) 
     });
 }
 
+// graphingToolOpen() toggles the graphing tool view and 
+function graphingToolOpen() {
+    graphingToolPopover.style.display = 'block';
+
+    calculator.setExpression({ id: 'graph1', latex: 'y=x^2' })
+    console.log(calculator.getExpressions());
+    graphingToolPopover.appendChild(elt);
+}
+
+function cancelGraph() {
+    graphingToolPopover.style.display = 'none';
+}
+
+function insertGraph() {
+    let graphLatex = "\n " + calculator.getExpressions()[0].latex;
+    editor.session.insert(editor.getCursorPosition(), graphLatex);
+    graphingToolPopover.style.display = 'none'; 
+    return;
+}
