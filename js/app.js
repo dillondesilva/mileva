@@ -42,29 +42,35 @@ window.onload = () => {
 
                     for (let folderIcon of folderIcons) {
                         for (let child of folderIcon.children) {
-                            if (child.classList.contains('childFolderIcon')) {
+                            if (child.classList.contains('childFolderIcon') || child.classList.contains('file')) {
                                 child.classList.add('hide');
                             }
                         }
 
-                        $(folderIcon).click(evt => {
-                            const target = $(evt.target).parent().parent();
-
-                            for (let child of $(target).children()) {
-                                if (child.classList.contains('childFolderIcon')) {
-                                    child.classList.toggle('hide');
-                                } else if (child.classList.contains('icon-text')) {
-                                    $(child).children('.icon').children('i').toggleClass('fa-folder');
-                                    $(child).children('.icon').children('i').toggleClass('fa-folder-open');
-                                }
-
-                            }
-                        });
+                        createFolderClickHandeler(folderIcon);
                     }
                 }
             }
         });
     }
+}
+
+function createFolderClickHandeler (folderIcon) {
+    $(folderIcon).click(evt => {
+        const target = $(evt.target).parent().parent();
+
+        for (let child of $(target).children()) {
+            if (child.classList.contains('childFolderIcon')) {
+                child.classList.toggle('hide');
+                createFolderClickHandeler(child);
+            } else if (child.classList.contains('file')) {
+                child.classList.toggle('hide');
+            } else if (child.classList.contains('icon-text')) {
+                $(child).children('.icon').children('i').toggleClass('fa-folder');
+                $(child).children('.icon').children('i').toggleClass('fa-folder-open');
+            }
+        }
+    });
 }
 
 function createEditorInstance () {
@@ -116,7 +122,7 @@ function saveFile () {
     });
 }
 
-function displayFolder (folderPath, parentPath, parentNode=true, parentEl=null) {
+function displayFolder (folderPath, parentPath, parentNode=true, parentEl=null, file=false) {
     let folderName;
 
     if (folderPath.match(/(\\[^\\]+)$/)) {
@@ -163,13 +169,13 @@ function displayFolder (folderPath, parentPath, parentNode=true, parentEl=null) 
         folderEl.appendChild(iconTextEl);
 
         folderBtnBounding.appendChild(folderEl);
-    } else {
+    } else if (!file) {
         let iconEl = document.createElement("i");
         iconEl.classList.add("fa-solid");
         iconEl.classList.add("fa-folder");
 
         let iconSpanEl = document.createElement("span");
-        iconEl.classList.add("icon");
+        iconSpanEl.classList.add("icon");
         iconSpanEl.appendChild(iconEl);
 
         let nameEl = document.createElement("span");
@@ -186,12 +192,39 @@ function displayFolder (folderPath, parentPath, parentNode=true, parentEl=null) 
         folderEl.appendChild(iconTextEl);
 
         parentEl.appendChild(folderEl);
+    } else {
+        let iconEl = document.createElement("i");
+        iconEl.classList.add("fa-solid");
+        iconEl.classList.add("fa-file-lines");
+
+        let iconSpanEl = document.createElement("span");
+        iconEl.classList.add("icon");
+        iconSpanEl.appendChild(iconEl);
+
+        let nameEl = document.createElement("span");
+        let nameNode = document.createTextNode(folderName);
+        nameEl.appendChild(nameNode);
+
+        let iconTextEl = document.createElement("span");
+        iconTextEl.classList.add("icon-text");
+        iconTextEl.appendChild(iconSpanEl);
+        iconTextEl.appendChild(nameEl);
+
+        folderEl = document.createElement("div");
+        folderEl.classList.add("file");
+        folderEl.appendChild(iconTextEl);
+
+        parentEl.appendChild(folderEl);
     }
 
-    fs.readdirSync(parentPath, {withFileTypes: true}).forEach(dirent => {
-        if (dirent.isDirectory()) {
-            displayFolder(dirent.name, path.join(parentPath, dirent.name), false, folderEl);
-        }
-    });
+    if (!file) {
+        fs.readdirSync(parentPath, {withFileTypes: true}).forEach(dirent => {
+            if (dirent.isDirectory()) {
+                displayFolder(dirent.name, path.join(parentPath, dirent.name), false, folderEl);
+            } else if (dirent.isFile() && dirent.name.match(/.*\.tex/)) {
+                displayFolder(dirent.name, path.join(parentPath, dirent.name), false, folderEl, true);
+            }
+        });
+    }
 }
 
