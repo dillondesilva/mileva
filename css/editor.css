@@ -163,6 +163,11 @@ textarea:focus {
     padding-left: 2vh;
 }
 
+.file {
+    width: 100%;
+    padding-left: 2vh;
+}
+
 .openFolderBtn:hover {
     opacity: 0.9;
 }
