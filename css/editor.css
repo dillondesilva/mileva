@@ -3,6 +3,11 @@
 @import "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css";
 @import url('./fontDefinitions.css');
 
+body {
+    overflow: hidden;
+    height: 100%;
+}
+
 .sidebarComponent {
     height: 100vh;
     width: 18vw;
@@ -202,6 +207,7 @@ textarea:focus {
     left: 50%;
     padding-bottom: 3vh;
     transform: translate("-50%", "0%");
+    z-index: 15;
 }
 
 .btnInsertBuffer {

@@ -7,12 +7,15 @@ let editor;
 let pendingCalls = 0;
 
 const graphingToolPopover = document.getElementById('graphingToolPopover');
+const mainView = document.getElementById('mainView');
 const desmos = require('desmos');
+const { throws } = require("assert");
+const { contextIsolated } = require("process");
 const elt = document.createElement('div');
 
 elt.setAttribute("id", "desmosCalc")
 elt.style.width = '60vw';
-elt.style.height = '70vh';
+elt.style.height = '80vh';
 elt.style.zIndex = 12;
 elt.style.position = 'absolute';
 elt.style.margin = '0 auto';
@@ -20,7 +23,7 @@ elt.style.transform = 'translate(-50%, -0%)';
 elt.style.top = '0vh';
 elt.style.left = '50%';
 
-const calculator = desmos.GraphingCalculator(elt, {border: false})
+const calculator = desmos.GraphingCalculator(elt, {border: false});
 
 window.onload = () => {
     createEditorInstance();
@@ -38,6 +41,9 @@ window.onload = () => {
 
     const cancelGraphButton = document.querySelector("#btnCancel");
     btnCancel.onclick = cancelGraph;
+
+    const insertEqnButton = document.querySelector("#btnEqnInsert");
+    insertEqnButton.onclick = insertEquation;
 
     /*
     Required innerHTML
@@ -115,6 +121,12 @@ function createEditorInstance () {
     generator = latexjs.parse(text, { generator: generator })
     document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/"));
     previewDisplay.innerHTML = generator.domFragment().children[0].innerHTML;
+    previewDisplay.innerHTML += "  <script type='text/tikz'> \
+    \\begin{tikzpicture}\n\
+      \\draw (0,0) circle (1in);\n\
+    \\end{tikzpicture}\n\
+  </script>";
+  
     document.body.appendChild(generator.domFragment());
 
     editor.session.on("change", (e) => {
@@ -127,9 +139,13 @@ function createEditorInstance () {
               this.g = generator;
             }
         
-            args['bf'] = ['HV']
-            prototype['bf'] = function() {
-              this.g.setFontWeight('bf')
+            args['graph'] = ['H', 'k']
+            prototype['graph'] = function(expr) {  
+                expr = "y=" + expr
+                calculator.setExpression({ id: 'graph1', latex: expr });
+                console.log(expr)
+                let latestScreenshot = graphScreenshot();
+                return [latestScreenshot];
             };
         
             return CustomMacros;
@@ -165,17 +181,16 @@ function saveFile () {
 
 function displayFolder (folderPath, parentPath, parentNode=true, parentEl=null, file=false) {
     let folderName;
+    let foldersList = folderPath.split('/');
 
-    if (folderPath.match(/(\\[^\\]+)$/)) {
-        folderName = folderPath.match(/(\\[^\\]+)$/)[0];
-        folderName = folderName.substr(1, folderName.length);
-    } else {
-        folderName = folderPath;
-    }
+    folderName = foldersList[foldersList.length - 1];
 
     let folderBtnBounding = document.querySelector(".openFolderBtnBounding");
 
     let folderEl;
+
+    let openFolderPrompt = document.getElementById("openFolderPrompt");
+    openFolderPrompt.style.display = "none";
 
     if (parentNode) {
             /* 
@@ -273,6 +288,8 @@ function displayFolder (folderPath, parentPath, parentNode=true, parentEl=null, 
 function graphingToolOpen() {
     graphingToolPopover.style.display = 'block';
 
+    mainView.style.opacity = '0.4';
+
     calculator.setExpression({ id: 'graph1', latex: 'y=x^2' })
     console.log(calculator.getExpressions());
     graphingToolPopover.appendChild(elt);
@@ -280,11 +297,48 @@ function graphingToolOpen() {
 
 function cancelGraph() {
     graphingToolPopover.style.display = 'none';
+    mainView.style.opacity = '1';
 }
 
 function insertGraph() {
-    let graphLatex = "\n " + calculator.getExpressions()[0].latex;
+    let expr = calculator.getExpressions()[0].latex;
+    expr = expr.replace('y=', '')
+    let graphLatex = "\n " + "\\graph{" + expr + "}\n";
+
+    console.log(calculator.getExpressions());
+    
     editor.session.insert(editor.getCursorPosition(), graphLatex);
     graphingToolPopover.style.display = 'none'; 
+    mainView.style.opacity = '1';
     return;
+}
+
+function graphScreenshot() {
+    var screenshot = calculator.screenshot({
+        width: 200,
+        height: 200,
+        targetPixelRatio: 2
+    });
+
+    console.log(screenshot);
+        // Append the thumbnail image to the current page
+    latestScreenshot = document.createElement('img');
+    // Note: if width and height are not set, the thumbnail
+    // would display at 400px by 400px since it was captured
+    // with targetPixelRatio: 2.
+    latestScreenshot.width = 200;
+    latestScreenshot.height = 200;
+    latestScreenshot.src = screenshot; 
+
+    return latestScreenshot;
+}
+
+function insertEquation() {
+    let eqnText = "\n$$"
+    editor.session.insert(editor.getCursorPosition(), eqnText);
+    let newCursorPos = editor.getCursorPosition();
+    newCursorPos.column -= 1;
+    editor.moveCursorToPosition(newCursorPos);
+    editor.clearSelection();
+    editor.focus();
 }
