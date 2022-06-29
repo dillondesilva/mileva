@@ -116,10 +116,14 @@ function createEditorInstance () {
     let previewDisplay = document.getElementById("previewDisplay");
 
     let text = editor.getValue();
-    let generator = new latexjs.HtmlGenerator({ hyphenate: false })
+    let generator = new latexjs.HtmlGenerator({ hyphenate: false });
+
+    document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/css/article.css"));
+    document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/css/base.css"));
+    document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/css/book.css"));
+    document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/css/katex.css"));
 
     generator = latexjs.parse(text, { generator: generator })
-    document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/"));
     previewDisplay.innerHTML = generator.domFragment().children[0].innerHTML;
     previewDisplay.innerHTML += "  <script type='text/tikz'> \
     \\begin{tikzpicture}\n\
