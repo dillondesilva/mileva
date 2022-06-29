@@ -185,7 +185,7 @@ function saveFile () {
 
 function displayFolder (folderPath, parentPath, parentNode=true, parentEl=null, file=false) {
     let folderName;
-    let foldersList = folderPath.split('/');
+    let foldersList = folderPath.includes('/') ? folderPath.split('/') : folderPath.split('\\');
 
     folderName = foldersList[foldersList.length - 1];
 
