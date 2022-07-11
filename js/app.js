@@ -25,6 +25,8 @@ elt.style.left = '50%';
 
 const calculator = desmos.GraphingCalculator(elt, {border: false});
 
+let screenshot;
+
 window.onload = () => {
     createEditorInstance();
 
@@ -44,21 +46,6 @@ window.onload = () => {
 
     const insertEqnButton = document.querySelector("#btnEqnInsert");
     insertEqnButton.onclick = insertEquation;
-
-    /*
-    Required innerHTML
-
-    <div class="parentFolderIcon"> 
-        <span class="icon-text">
-            <span class="icon">
-                <i class="fas fa-caret-right"></i>
-            </span>
-            <span>Folder</span>
-        </span>
-    </div> 
-    */
-    
-    // document.body.append(elt)
 
     directoryButton.onclick = () => {
         dialog.showOpenDialog({
@@ -109,7 +96,7 @@ function createFolderClickHandeler (folderIcon) {
 function createEditorInstance () {
     editor = ace.edit("editor", {selectionStyle: "text"});
     editor.resize()
-    editor.setTheme("ace/theme/dawn");
+    editor.setTheme("ace/theme/monokai");
     editor.getSession().setMode("ace/mode/latex");
     editor.getSession().setUseSoftTabs(true);
 
@@ -118,23 +105,14 @@ function createEditorInstance () {
     let text = editor.getValue();
     let generator = new latexjs.HtmlGenerator({ hyphenate: false });
 
-    document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/css/article.css"));
-    document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/css/base.css"));
-    document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/css/book.css"));
-    document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/css/katex.css"));
-
     generator = latexjs.parse(text, { generator: generator })
     previewDisplay.innerHTML = generator.domFragment().children[0].innerHTML;
-    previewDisplay.innerHTML += "  <script type='text/tikz'> \
-    \\begin{tikzpicture}\n\
-      \\draw (0,0) circle (1in);\n\
-    \\end{tikzpicture}\n\
-  </script>";
   
     document.body.appendChild(generator.domFragment());
 
     editor.session.on("change", (e) => {
         let text = editor.getValue();
+
         let generator = new latexjs.HtmlGenerator({ hyphenate: false, CustomMacros: (function() {
             var args      = CustomMacros.args = {},
                 prototype = CustomMacros.prototype;
@@ -143,24 +121,23 @@ function createEditorInstance () {
               this.g = generator;
             }
         
-            args['graph'] = ['H', 'k']
-            prototype['graph'] = function(expr) {  
-                expr = "y=" + expr
-                calculator.setExpression({ id: 'graph1', latex: expr });
-                console.log(expr)
-                let latestScreenshot = graphScreenshot();
-                return [latestScreenshot];
+            args['graph'] = ['H', 'g']
+
+            prototype['graph'] = function(expr) {
+                expr = "y=" + expr.data;
+
+                graphScreenshot(expr);
             };
         
             return CustomMacros;
           }()) })
 
         try {
-            generator = latexjs.parse(text, { generator: generator })
+            generator = latexjs.parse(text, { generator: generator });
 
-            document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/"));
-            previewDisplay.innerHTML = generator.domFragment().children[0].innerHTML;
-            document.body.appendChild(generator.domFragment());
+            document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/"))
+            // previewDisplay.innerHTML = generator.domFragment().children[0].innerHTML;
+            // document.body.appendChild(generator.domFragment());
         } catch (error) {
             console.log(error)
         }
@@ -307,9 +284,8 @@ function cancelGraph() {
 function insertGraph() {
     let expr = calculator.getExpressions()[0].latex;
     expr = expr.replace('y=', '')
+    expr = expr.replace('^', '\\textasciicircum')
     let graphLatex = "\n " + "\\graph{" + expr + "}\n";
-
-    console.log(calculator.getExpressions());
     
     editor.session.insert(editor.getCursorPosition(), graphLatex);
     graphingToolPopover.style.display = 'none'; 
@@ -317,24 +293,59 @@ function insertGraph() {
     return;
 }
 
-function graphScreenshot() {
-    var screenshot = calculator.screenshot({
-        width: 200,
-        height: 200,
-        targetPixelRatio: 2
-    });
+// function setEquation() {
+//     calculator
+// }
 
-    console.log(screenshot);
-        // Append the thumbnail image to the current page
-    latestScreenshot = document.createElement('img');
-    // Note: if width and height are not set, the thumbnail
-    // would display at 400px by 400px since it was captured
-    // with targetPixelRatio: 2.
-    latestScreenshot.width = 200;
-    latestScreenshot.height = 200;
-    latestScreenshot.src = screenshot; 
+function refreshPreview(screenshot) {
+    console.log(screenshot)
+    let text = editor.getValue();
 
-    return latestScreenshot;
+    let generator = new latexjs.HtmlGenerator({ hyphenate: false, CustomMacros: (function() {
+        var args      = CustomMacros.args = {},
+            prototype = CustomMacros.prototype;
+    
+        function CustomMacros(generator) {
+          this.g = generator;
+        }
+    
+        args['graph'] = ['H', 'g']
+
+        prototype['graph'] = function(expr) {
+            console.log(screenshot);
+            return [screenshot];
+        };
+    
+        return CustomMacros;
+      }()) })
+
+    try {
+        generator = latexjs.parse(text, { generator: generator });
+
+        document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/"))
+        previewDisplay.innerHTML = generator.domFragment().children[0].innerHTML;
+        document.body.appendChild(generator.domFragment());
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+function graphScreenshot(eqn) {
+    var screenshotTempElt = document.createElement('div');
+    screenshotTempElt.style.display = "none";
+
+    calculator.setExpression({id: "graph1", latex: eqn });
+
+    var screenshot = calculator.screenshot();
+    calculator.asyncScreenshot((data) => {
+        screenshot = document.createElement('img');
+
+        screenshot.width = 200;
+        screenshot.height = 200;
+        screenshot.src = data; 
+
+        refreshPreview(screenshot);
+    });  
 }
 
 function insertEquation() {
