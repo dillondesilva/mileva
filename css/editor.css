@@ -1,9 +1,10 @@
-@import '~bootstrap/dist/css/bootstrap.css';
 @import "https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css";
 @import "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css";
+@import url("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/css/");
 @import url('./fontDefinitions.css');
 
-body {
+html, body {
+    margin: 0;
     overflow: hidden;
     height: 100%;
 }
@@ -11,9 +12,9 @@ body {
 .sidebarComponent {
     height: 100vh;
     width: 18vw;
-    background-color: #262626;
+    background-color: #272822;
     position: absolute;
-    border-right: 0.7px solid #2E4159;
+    border-right: 0.7px solid #272822;
 }
 
 .topbarComponent {
@@ -87,7 +88,7 @@ textarea {
     width: 38vw;
     height: 93vh;
     border: 0;
-    background-color: #2E4159;
+    background-color: #F92572;
     padding-top: 1vh;
     padding-left: 1vh;
     position: absolute;
@@ -139,7 +140,7 @@ textarea:focus {
     height: 68vh;
     position: absolute;
     color: white;
-    border-top: 0.75vw solid #2E4159;
+    border-top: 0.75vw solid #3E8FD0;
 }
 
 .folderDisplay {

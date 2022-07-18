@@ -5,6 +5,7 @@ const HOME_DIRECTORY = require('os').homedir();
 
 let editor;
 let pendingCalls = 0;
+let previewDisplay = document.getElementById("previewDisplay");
 
 const graphingToolPopover = document.getElementById('graphingToolPopover');
 const mainView = document.getElementById('mainView');
@@ -24,6 +25,9 @@ elt.style.top = '0vh';
 elt.style.left = '50%';
 
 const calculator = desmos.GraphingCalculator(elt, {border: false});
+
+let screenshot;
+let renderContainsImage = false;
 
 window.onload = () => {
     createEditorInstance();
@@ -45,20 +49,8 @@ window.onload = () => {
     const insertEqnButton = document.querySelector("#btnEqnInsert");
     insertEqnButton.onclick = insertEquation;
 
-    /*
-    Required innerHTML
-
-    <div class="parentFolderIcon"> 
-        <span class="icon-text">
-            <span class="icon">
-                <i class="fas fa-caret-right"></i>
-            </span>
-            <span>Folder</span>
-        </span>
-    </div> 
-    */
-    
-    // document.body.append(elt)
+    const exportButton = document.querySelector("#btnExport");
+    exportButton.onclick = exportToPDF;
 
     directoryButton.onclick = () => {
         dialog.showOpenDialog({
@@ -109,32 +101,21 @@ function createFolderClickHandeler (folderIcon) {
 function createEditorInstance () {
     editor = ace.edit("editor", {selectionStyle: "text"});
     editor.resize()
-    editor.setTheme("ace/theme/dawn");
+    editor.setTheme("ace/theme/monokai");
     editor.getSession().setMode("ace/mode/latex");
     editor.getSession().setUseSoftTabs(true);
-
-    let previewDisplay = document.getElementById("previewDisplay");
 
     let text = editor.getValue();
     let generator = new latexjs.HtmlGenerator({ hyphenate: false });
 
-    document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/css/article.css"));
-    document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/css/base.css"));
-    document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/css/book.css"));
-    document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/css/katex.css"));
-
     generator = latexjs.parse(text, { generator: generator })
     previewDisplay.innerHTML = generator.domFragment().children[0].innerHTML;
-    previewDisplay.innerHTML += "  <script type='text/tikz'> \
-    \\begin{tikzpicture}\n\
-      \\draw (0,0) circle (1in);\n\
-    \\end{tikzpicture}\n\
-  </script>";
   
     document.body.appendChild(generator.domFragment());
 
     editor.session.on("change", (e) => {
         let text = editor.getValue();
+        let graphsToRender = [];
         let generator = new latexjs.HtmlGenerator({ hyphenate: false, CustomMacros: (function() {
             var args      = CustomMacros.args = {},
                 prototype = CustomMacros.prototype;
@@ -143,24 +124,28 @@ function createEditorInstance () {
               this.g = generator;
             }
         
-            args['graph'] = ['H', 'k']
-            prototype['graph'] = function(expr) {  
-                expr = "y=" + expr
-                calculator.setExpression({ id: 'graph1', latex: expr });
+            args['graph'] = ['H', 'g']
+
+            prototype['graph'] = function(expr) {
+                let exprAnnotated = expr.querySelector('annotation');
+                expr = "y=" + exprAnnotated.innerHTML;
                 console.log(expr)
-                let latestScreenshot = graphScreenshot();
-                return [latestScreenshot];
+                graphScreenshot(expr, graphsToRender);        
             };
         
             return CustomMacros;
           }()) })
 
         try {
-            generator = latexjs.parse(text, { generator: generator })
+            generator = latexjs.parse(text, { generator: generator });
 
             document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/"));
-            previewDisplay.innerHTML = generator.domFragment().children[0].innerHTML;
-            document.body.appendChild(generator.domFragment());
+
+            if (!renderContainsImage) {
+                previewDisplay.innerHTML = generator.domFragment().children[0].innerHTML;
+                document.body.appendChild(generator.domFragment());
+            }
+
         } catch (error) {
             console.log(error)
         }
@@ -307,9 +292,7 @@ function cancelGraph() {
 function insertGraph() {
     let expr = calculator.getExpressions()[0].latex;
     expr = expr.replace('y=', '')
-    let graphLatex = "\n " + "\\graph{" + expr + "}\n";
-
-    console.log(calculator.getExpressions());
+    let graphLatex = "\n" + "\\graph{$" + expr + "$}\n";
     
     editor.session.insert(editor.getCursorPosition(), graphLatex);
     graphingToolPopover.style.display = 'none'; 
@@ -317,24 +300,73 @@ function insertGraph() {
     return;
 }
 
-function graphScreenshot() {
-    var screenshot = calculator.screenshot({
+// function setEquation() {
+//     calculator
+// }
+
+function refreshPreview(graphsToRender) {
+    console.log(graphsToRender)
+    let text = editor.getValue();
+    let currGraphNum = -1;
+
+    let generator = new latexjs.HtmlGenerator({ hyphenate: false, CustomMacros: (function() {
+        var args      = CustomMacros.args = {},
+            prototype = CustomMacros.prototype;
+    
+        function CustomMacros(generator) {
+          this.g = generator;
+        }
+    
+        args['graph'] = ['H', 'g']
+
+        prototype['graph'] = function(expr) {
+            // console.log(screenshot); 
+            currGraphNum += 1;
+            return [graphsToRender[currGraphNum]];
+        };
+    
+        return CustomMacros;
+      }()) })
+
+    try {
+        generator = latexjs.parse(text, { generator: generator });
+        renderContainsImage = false;
+
+        document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/"))
+        previewDisplay.innerHTML = generator.domFragment().children[0].innerHTML;
+        document.body.appendChild(generator.domFragment());
+
+        return generator.domFragment().children[0].innerHTML; 
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+function graphScreenshot(eqn, graphsToRender) {
+    var screenshotTempElt = document.createElement('div');
+    screenshotTempElt.style.display = "none";
+
+    renderContainsImage = true;
+
+    calculator.setExpression({id: "graph1", latex: eqn });
+
+    const screenshotParams = {
         width: 200,
         height: 200,
         targetPixelRatio: 2
-    });
+    }
 
-    console.log(screenshot);
-        // Append the thumbnail image to the current page
-    latestScreenshot = document.createElement('img');
-    // Note: if width and height are not set, the thumbnail
-    // would display at 400px by 400px since it was captured
-    // with targetPixelRatio: 2.
-    latestScreenshot.width = 200;
-    latestScreenshot.height = 200;
-    latestScreenshot.src = screenshot; 
+    calculator.asyncScreenshot(screenshotParams, (data) => {
+        screenshot = document.createElement('img');
 
-    return latestScreenshot;
+        screenshot.width = 200;
+        screenshot.height = 200;
+        screenshot.src = data;
+        
+        graphsToRender.push(screenshot)
+
+        refreshPreview(graphsToRender);
+    });  
 }
 
 function insertEquation() {
@@ -345,4 +377,33 @@ function insertEquation() {
     editor.moveCursorToPosition(newCursorPos);
     editor.clearSelection();
     editor.focus();
+}
+
+function exportToPDF() {
+    var fs = require('fs');
+    var pdf = require('html-pdf');
+    
+    let finalHTML =  "<link rel=\"stylesheet\" href=\"article.css\"><link rel=\"stylesheet\" href=\"base.css\"><link rel=\"stylesheet\" href=\"katex.css\"><link rel=\"stylesheet\" href=\"book.css\">" + previewDisplay.innerHTML;
+    console.log(finalHTML)
+    // First write the HTML content for the file
+    fs.writeFile('/Users/dillon/sample.html',  finalHTML, { flag: 'w+' }, err => {
+        if (err) {
+            console.error(err);
+        }
+        // file written successfully
+        console.log("Worked")
+        var html = fs.readFileSync('/Users/dillon/sample.html', 'utf8');
+        var options = { format: 'A4', base: "https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/css/",   "border": {
+            "top": "0.25in",            // default is 0, units: mm, cm, in, px
+            "right": "0.5in",
+            "bottom": "0.25in",
+            "left": "0.5in"
+          }};
+    
+        pdf.create(html, options).toFile('./test.pdf', function(err, res) {
+            if (err) return console.log(err);
+            console.log(res); // { filename: '/app/businesscard.pdf' }
+        });
+    });
+
 }
