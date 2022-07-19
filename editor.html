@@ -5,13 +5,19 @@
     <title>Mileva</title>
     <!-- <link rel="stylesheet" href="css/bootstrap.min.css"> -->
     <link rel="stylesheet" href="css/editor.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/css/">
+    <link rel="stylesheet" href="css/pageBase.css">
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"> -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/">
+    <link type="text/css" rel="stylesheet" href="file:///Users/dillon/projects/mileva/css/katex.css">
+    <link type="text/css" rel="stylesheet" href="file:///Users/dillon/projects/mileva/css/article.css">
+    <script src="file:///Users/dillon/projects/mileva/js/base.js"></script>
     <script src="node_modules/latex.js/dist/latex.js"></script>
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
   </head>
   <body scroll="no">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/ace.js"></script>
     <div>
+        <input type="file" id="folderSelector" style="display: none;" webkitdirectory directory></input>
         <div id="graphingToolPopover" class="graphingToolPopover">
           <div class="graphingToolButtons">
             <div id="btnInsertBuffer">
@@ -82,12 +88,12 @@
         </div>
         <div class="editor">
           <div class="tabSelector">
-            <div class="tabs is-boxed">
+            <div class="tabs is-left">
               <ul>
-                <li class="is-active">
+                <li class="is-left">
                   <a>
                     <span class="icon-text">
-                      <span>untitled.tex</span>
+                      <span class="tabNameText">untitled.tex</span>
                       <span class="icon">
                         <i class="fa-solid fa-xmark"></i>
                       </span>
@@ -97,17 +103,7 @@
                 <li>
                   <a>
                     <span class="icon-text">
-                      <span>untitled.tex</span>
-                      <span class="icon">
-                        <i class="fa-solid fa-xmark"></i>
-                      </span>
-                    </span>
-                  </a>
-                </li>
-                <li>
-                  <a>
-                    <span class="icon-text">
-                      <span>untitled.tex</span>
+                      <span class="tabNameText">untitled.tex</span>
                       <span class="icon">
                         <i class="fa-solid fa-xmark"></i>
                       </span>
@@ -115,8 +111,8 @@
                   </a>
                 </li>
               </ul>
-            </div>          
-          </div>
+            </div>  
+          </div>        
           <div id="editor" class="editorArea" focus=true>\documentclass{article}
 
 \usepackage{comment, multicol}
@@ -155,6 +151,7 @@ Lopseum Ipsum Delor
 \end{document}
                       
           </div>   
+        </div>
         </div>
         <div class="previewDisplay" id="previewDisplay">Type some LaTex to get started</div>
     </div>

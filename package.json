@@ -5,20 +5,29 @@
   "main": "./js/main.js",
   "scripts": {
     "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "css-build": "node-sass --omit-source-map-url css/pageBase.scss css/pageBase.css",
+    "css-watch": "npm run css-build -- --watch",
+    "start-css": "npm run css-watch"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devDependencies": {},
+  "devDependencies": {
+    "node-sass": "^7.0.1"
+  },
   "dependencies": {
     "@editorjs/editorjs": "^2.23.2",
     "@electron/remote": "^2.0.8",
     "bootstrap": "^5.1.3",
+    "bulma": "^0.9.4",
     "desmos": "^1.5.4",
     "electron": "^19.0.4",
+    "file-saver": "^2.0.5",
     "html-pdf": "^3.0.1",
+    "html2canvas": "^1.4.1",
     "jquery": "^3.6.0",
+    "jspdf": "^2.5.1",
     "latex.js": "^0.12.4",
     "monaco-editor": "^0.33.0",
     "os": "^0.1.2"

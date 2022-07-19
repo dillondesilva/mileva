@@ -5,7 +5,9 @@ const HOME_DIRECTORY = require('os').homedir();
 
 let editor;
 let pendingCalls = 0;
+
 let previewDisplay = document.getElementById("previewDisplay");
+let folderSelector = document.getElementById("folderSelector");
 
 const graphingToolPopover = document.getElementById('graphingToolPopover');
 const mainView = document.getElementById('mainView');
@@ -108,10 +110,14 @@ function createEditorInstance () {
     let text = editor.getValue();
     let generator = new latexjs.HtmlGenerator({ hyphenate: false });
 
-    generator = latexjs.parse(text, { generator: generator })
-    previewDisplay.innerHTML = generator.domFragment().children[0].innerHTML;
-  
-    document.body.appendChild(generator.domFragment());
+    generator = latexjs.parse(text, { generator: generator });
+
+    let doc = generator.htmlDocument();
+
+    let stylesInfo = doc.head.innerHTML;
+    let content = doc.body.innerHTML;
+
+    previewDisplay.innerHTML = content;
 
     editor.session.on("change", (e) => {
         let text = editor.getValue();
@@ -139,11 +145,11 @@ function createEditorInstance () {
         try {
             generator = latexjs.parse(text, { generator: generator });
 
-            document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/"));
-
             if (!renderContainsImage) {
-                previewDisplay.innerHTML = generator.domFragment().children[0].innerHTML;
-                document.body.appendChild(generator.domFragment());
+                let doc = generator.htmlDocument();
+                let stylesInfo = doc.head.innerHTML;
+                let content = doc.body.innerHTML;
+                previewDisplay.innerHTML = content;
             }
 
         } catch (error) {
@@ -300,10 +306,6 @@ function insertGraph() {
     return;
 }
 
-// function setEquation() {
-//     calculator
-// }
-
 function refreshPreview(graphsToRender) {
     console.log(graphsToRender)
     let text = editor.getValue();
@@ -331,12 +333,12 @@ function refreshPreview(graphsToRender) {
     try {
         generator = latexjs.parse(text, { generator: generator });
         renderContainsImage = false;
+        
+        let doc = generator.htmlDocument();
 
-        document.head.appendChild(generator.stylesAndScripts("https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/"))
-        previewDisplay.innerHTML = generator.domFragment().children[0].innerHTML;
-        document.body.appendChild(generator.domFragment());
-
-        return generator.domFragment().children[0].innerHTML; 
+        let content = doc.body.innerHTML;   
+        previewDisplay.innerHTML = content
+        return; 
     } catch (error) {
         console.log(error)
     }
@@ -379,31 +381,64 @@ function insertEquation() {
     editor.focus();
 }
 
+
 function exportToPDF() {
     var fs = require('fs');
     var pdf = require('html-pdf');
-    
-    let finalHTML =  "<link rel=\"stylesheet\" href=\"article.css\"><link rel=\"stylesheet\" href=\"base.css\"><link rel=\"stylesheet\" href=\"katex.css\"><link rel=\"stylesheet\" href=\"book.css\">" + previewDisplay.innerHTML;
-    console.log(finalHTML)
-    // First write the HTML content for the file
-    fs.writeFile('/Users/dillon/sample.html',  finalHTML, { flag: 'w+' }, err => {
-        if (err) {
-            console.error(err);
-        }
-        // file written successfully
-        console.log("Worked")
-        var html = fs.readFileSync('/Users/dillon/sample.html', 'utf8');
-        var options = { format: 'A4', base: "https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/css/",   "border": {
-            "top": "0.25in",            // default is 0, units: mm, cm, in, px
-            "right": "0.5in",
-            "bottom": "0.25in",
-            "left": "0.5in"
-          }};
-    
-        pdf.create(html, options).toFile('./test.pdf', function(err, res) {
-            if (err) return console.log(err);
-            console.log(res); // { filename: '/app/businesscard.pdf' }
-        });
-    });
+    var html2canvas = require('html2canvas');
 
+    var htmlObject = document.implementation.createHTMLDocument();
+
+    const iframe = document.createElement("iframe");
+    var div = htmlObject.createElement("div")
+    div.innerHTML =  "<link rel=\"stylesheet\" href=\"css/article.css\"><link rel=\"stylesheet\" href=\"css/base.css\"><link rel=\"stylesheet\" href=\"css/katex.css\"><link rel=\"stylesheet\" href=\"css/book.css\">" + previewDisplay.innerHTML;
+    htmlObject.body.appendChild(div);
+    document.body.appendChild(iframe); // 👈 still required
+    iframe.contentWindow.document.open();
+    iframe.contentWindow.document.write(div);
+    iframe.contentWindow.document.close();
+
+    const { jsPDF } = require("jspdf"); // will automatically load the node version
+
+    const doc = new jsPDF();
+    console.log(iframe.contentWindow.document.body.innerText)
+    html2canvas(iframe.contentWindow.document.body).then((canvas) => {
+ 
+        doc.html(canvas, {
+            callback: function (doc) {
+              doc.save();
+              console.log("saved")
+            },
+            x: 10,
+            y: 10
+        }).catch((err) => {
+            console.log(err)
+        })
+        console.log("done")
+    }).catch((err) => {
+        console.log(htmlObject)
+        console.log(err)
+    })
+    // dialog.showSaveDialog({
+    //     title: 'Select the File Path to export',
+    //     defaultPath: path.join(__dirname, '../assets/sample.pdf'),
+    //     // defaultPath: path.join(__dirname, '../assets/'),
+    //     buttonLabel: 'Export',
+    //     // Restricting the user to only Text Files.
+    //     filters: [
+    //         {
+    //             name: 'PDF Files',
+    //             extensions: ['pdf']
+    //         }, ],
+    //     properties: []
+    // }).then(file => {
+    //     // Stating whether dialog operation was cancelled or not.
+    //     console.log(file.canceled);
+    //     if (!file.canceled) {
+    //         let filePath = file.filePath.toString();
+    //         doc.save("a4.pdf");
+    //     }
+    // }).catch(err => {
+    //     console.log(err)
+    // });
 }
