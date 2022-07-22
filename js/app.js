@@ -385,60 +385,50 @@ function insertEquation() {
 function exportToPDF() {
     var fs = require('fs');
     var pdf = require('html-pdf');
-    var html2canvas = require('html2canvas');
 
-    var htmlObject = document.implementation.createHTMLDocument();
+    const pathHandler = require("@electron/remote");
 
-    const iframe = document.createElement("iframe");
-    var div = htmlObject.createElement("div")
-    div.innerHTML =  "<link rel=\"stylesheet\" href=\"css/article.css\"><link rel=\"stylesheet\" href=\"css/base.css\"><link rel=\"stylesheet\" href=\"css/katex.css\"><link rel=\"stylesheet\" href=\"css/book.css\">" + previewDisplay.innerHTML;
-    htmlObject.body.appendChild(div);
-    document.body.appendChild(iframe); // 👈 still required
-    iframe.contentWindow.document.open();
-    iframe.contentWindow.document.write(div);
-    iframe.contentWindow.document.close();
+    let finalHTML =  "<link rel=\"stylesheet\" href=\"article.css\"><link rel=\"stylesheet\" href=\"base.css\"><link rel=\"stylesheet\" href=\"katex.css\"><link rel=\"stylesheet\" href=\"book.css\">" + previewDisplay.innerHTML;
 
-    const { jsPDF } = require("jspdf"); // will automatically load the node version
+    var tempPath = pathHandler.app.getPath('temp') + 'toRender.html';
 
-    const doc = new jsPDF();
-    console.log(iframe.contentWindow.document.body.innerText)
-    html2canvas(iframe.contentWindow.document.body).then((canvas) => {
- 
-        doc.html(canvas, {
-            callback: function (doc) {
-              doc.save();
-              console.log("saved")
-            },
-            x: 10,
-            y: 10
-        }).catch((err) => {
-            console.log(err)
-        })
-        console.log("done")
-    }).catch((err) => {
-        console.log(htmlObject)
+    dialog.showSaveDialog({
+        title: 'Select the File Path to export',
+        defaultPath: path.join(__dirname, '../assets/sample.pdf'),
+        // defaultPath: path.join(__dirname, '../assets/'),
+        buttonLabel: 'Export',
+        // Restricting the user to only Text Files.
+        filters: [
+            {
+                name: 'PDF Files',
+                extensions: ['pdf']
+            }, ],
+        properties: []
+    }).then(file => {
+        // Stating whether dialog operation was cancelled or not.
+        console.log(file.canceled);
+        if (!file.canceled) {
+            let filePath = file.filePath.toString();
+            fs.writeFile(tempPath,  finalHTML, { flag: 'w+' }, err => {
+                if (err) {
+                    console.error(err);
+                }
+                // file written successfully
+                var html = fs.readFileSync(tempPath, 'utf8');
+                var options = { format: 'A4', base: "https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/css/",   "border": {
+                    "top": "0.25in",            // default is 0, units: mm, cm, in, px
+                    "right": "0.5in",
+                    "bottom": "0.25in",
+                    "left": "0.5in"
+                  }};
+        
+                pdf.create(html, options).toFile(filePath, function(err, res) {
+                    if (err) return console.log(err);
+                    console.log(res); // { filename: '/app/businesscard.pdf' }
+                });
+            }); 
+        }
+    }).catch(err => {
         console.log(err)
-    })
-    // dialog.showSaveDialog({
-    //     title: 'Select the File Path to export',
-    //     defaultPath: path.join(__dirname, '../assets/sample.pdf'),
-    //     // defaultPath: path.join(__dirname, '../assets/'),
-    //     buttonLabel: 'Export',
-    //     // Restricting the user to only Text Files.
-    //     filters: [
-    //         {
-    //             name: 'PDF Files',
-    //             extensions: ['pdf']
-    //         }, ],
-    //     properties: []
-    // }).then(file => {
-    //     // Stating whether dialog operation was cancelled or not.
-    //     console.log(file.canceled);
-    //     if (!file.canceled) {
-    //         let filePath = file.filePath.toString();
-    //         doc.save("a4.pdf");
-    //     }
-    // }).catch(err => {
-    //     console.log(err)
-    // });
+    });
 }
