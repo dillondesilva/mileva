@@ -138,6 +138,7 @@ textarea:focus {
     height: 68vh;
     position: absolute;
     color: white;
+    overflow: scroll;
     border-top: 0.75vw solid #3E8FD0;
 }
 
@@ -145,6 +146,7 @@ textarea:focus {
     padding-left: 1vw;
     padding-right: 1vw;
     padding-bottom: 1vw;
+    overflow: scroll;
     font-family: "Jost-Regular";
 }
 
@@ -153,9 +155,20 @@ textarea:focus {
 }
 
 .openFolderBtnBounding {
-    padding: 4vh;
+    padding: 0.5vw;
     text-align: center;
     font-family: "Jost-Regular"; 
+    overflow: scroll;
+}
+
+.folderName {
+    height: 100%;
+    width: 18vw;
+    padding: 0.5vw;
+}
+
+.folderElement {
+    padding: 0.25vw;
 }
 
 .parentFolderIcon {
@@ -224,4 +237,12 @@ textarea:focus {
 
 body {
     overflow: hidden;
+}
+
+.alertTitle {
+    font-family: "Jost-Regular";  
+}
+
+.alertText {
+    font-family: "Jost-Regular"; 
 }

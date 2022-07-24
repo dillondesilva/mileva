@@ -1,5 +1,6 @@
 const { dialog } = require("@electron/remote");
 const fs = require('fs');
+const Swal = require('sweetalert2')
 const $ = require("jquery");
 const HOME_DIRECTORY = require('os').homedir();
 
@@ -61,7 +62,7 @@ window.onload = () => {
             if (!res.canceled) {
                 for (const filePath of res.filePaths) {
                     $(directoryButton).css('display', 'none');
-                    $('.openFolderBtnBounding').css('padding', '2vh');
+                    $('.openFolderBtnBounding').css('padding', '0.25vw');
 
                     displayFolder(filePath, filePath);
 
@@ -168,7 +169,16 @@ function saveFile () {
             { name: 'LaTeX Document', extensions: ['tex'] }
         ]
     }).then(res => {
-        if (!res.canceled) fs.writeFile(res.filePath, contents, () => console.log('File successfully saved!'));
+        if (!res.canceled) fs.writeFile(res.filePath, contents, () => {
+            Swal.mixin({
+                customClass: {
+                    title: 'alertTitle',
+                    container: 'alertText'
+                }
+            })
+
+            Swal.fire('Saved!')
+        });
     }).catch(err => {
         console.log(err);
     });
@@ -188,16 +198,6 @@ function displayFolder (folderPath, parentPath, parentNode=true, parentEl=null, 
     openFolderPrompt.style.display = "none";
 
     if (parentNode) {
-            /* 
-            <div class="parentFolderIcon"> 
-                <span class="icon-text">
-                    <span class="icon">
-                        <i class="fas fa-caret-right"></i>
-                    </span>
-                </span>
-            </div>
-            */
-
         let iconEl = document.createElement("i");
         iconEl.classList.add("fa-solid");
         iconEl.classList.add("fa-folder");
@@ -208,6 +208,7 @@ function displayFolder (folderPath, parentPath, parentNode=true, parentEl=null, 
 
         let nameEl = document.createElement("span");
         let nameNode = document.createTextNode(folderName);
+        nameEl.classList.add("folderName");
         nameEl.appendChild(nameNode);
 
         let iconTextEl = document.createElement("span");
@@ -217,6 +218,7 @@ function displayFolder (folderPath, parentPath, parentNode=true, parentEl=null, 
 
         folderEl = document.createElement("div");
         folderEl.classList.add('parentFolderIcon');
+        folderEl.classList.add("folderElement");
         folderEl.appendChild(iconTextEl);
 
         folderBtnBounding.appendChild(folderEl);
@@ -231,6 +233,7 @@ function displayFolder (folderPath, parentPath, parentNode=true, parentEl=null, 
 
         let nameEl = document.createElement("span");
         let nameNode = document.createTextNode(folderName);
+        nameEl.classList.add("folderName");
         nameEl.appendChild(nameNode);
 
         let iconTextEl = document.createElement("span");
@@ -240,6 +243,7 @@ function displayFolder (folderPath, parentPath, parentNode=true, parentEl=null, 
 
         folderEl = document.createElement("div");
         folderEl.classList.add('childFolderIcon');
+        folderEl.classList.add("folderElement");
         folderEl.appendChild(iconTextEl);
 
         parentEl.appendChild(folderEl);
@@ -254,6 +258,7 @@ function displayFolder (folderPath, parentPath, parentNode=true, parentEl=null, 
 
         let nameEl = document.createElement("span");
         let nameNode = document.createTextNode(folderName);
+        nameEl.classList.add("folderName");
         nameEl.appendChild(nameNode);
 
         let iconTextEl = document.createElement("span");
@@ -263,6 +268,7 @@ function displayFolder (folderPath, parentPath, parentNode=true, parentEl=null, 
 
         folderEl = document.createElement("div");
         folderEl.classList.add("file");
+        folderEl.classList.add("folderElement");
         folderEl.appendChild(iconTextEl);
 
         parentEl.appendChild(folderEl);
@@ -388,7 +394,7 @@ function exportToPDF() {
 
     const pathHandler = require("@electron/remote");
 
-    let finalHTML =  "<link rel=\"stylesheet\" href=\"../css/article.css\"><link rel=\"stylesheet\" href=\"../css/article.css\"><link rel=\"stylesheet\" href=\"../css/article.css\"><link rel=\"stylesheet\" href=\"../css/article.css\">" + previewDisplay.innerHTML;
+    let finalHTML =  "<link rel=\"stylesheet\" href=\"article.css\"><link rel=\"stylesheet\" href=\"base.css\"><link rel=\"stylesheet\" href=\"book.css\"><link rel=\"stylesheet\" href=\"katex.css\">" + previewDisplay.innerHTML;
 
     var tempPath = pathHandler.app.getPath('temp') + 'toRender.html';
 
@@ -415,7 +421,7 @@ function exportToPDF() {
                 }
                 // file written successfully
                 var html = fs.readFileSync(tempPath, 'utf8');
-                var options = { format: 'A4', base: "https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/css/",   "border": {
+                var options = { format: 'A4', base: "../css/",   "border": {
                     "top": "0.25in",            // default is 0, units: mm, cm, in, px
                     "right": "0.5in",
                     "bottom": "0.25in",
