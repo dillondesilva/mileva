@@ -1,5 +1,4 @@
 @import "../node_modules/bulma/bulma.sass";
-@import "../node_modules/bulma/sass/elements/button.sass";
 @import "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css";
 @import url('./fontDefinitions.css');
 
@@ -68,10 +67,10 @@ html, body {
 .previewDisplay {
     top: 7vh;
     left: 59vw;
-    width: 41vw;
+    width: 38vw;
     height: 93vh;
     overflow: scroll;
-    padding: 1vw;
+    padding: 1.5vw;
     position: absolute;
 }
 
@@ -107,7 +106,7 @@ textarea:focus {
 }
 
 .sidebarBtn:hover {
-    background-color: #f6f6f6;
+    background-color: #c4bfbf;
 }
 
 .sidebarBtnIcon {

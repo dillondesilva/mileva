@@ -388,7 +388,7 @@ function exportToPDF() {
 
     const pathHandler = require("@electron/remote");
 
-    let finalHTML =  "<link rel=\"stylesheet\" href=\"article.css\"><link rel=\"stylesheet\" href=\"base.css\"><link rel=\"stylesheet\" href=\"katex.css\"><link rel=\"stylesheet\" href=\"book.css\">" + previewDisplay.innerHTML;
+    let finalHTML =  "<link rel=\"stylesheet\" href=\"../css/article.css\"><link rel=\"stylesheet\" href=\"../css/article.css\"><link rel=\"stylesheet\" href=\"../css/article.css\"><link rel=\"stylesheet\" href=\"../css/article.css\">" + previewDisplay.innerHTML;
 
     var tempPath = pathHandler.app.getPath('temp') + 'toRender.html';
 
