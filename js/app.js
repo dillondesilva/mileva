@@ -15,6 +15,7 @@ const mainView = document.getElementById('mainView');
 const desmos = require('desmos');
 const { throws } = require("assert");
 const { contextIsolated } = require("process");
+const { UndoManager } = require("ace-builds");
 const elt = document.createElement('div');
 
 elt.setAttribute("id", "desmosCalc")
@@ -105,8 +106,12 @@ function createEditorInstance () {
     editor = ace.edit("editor", {selectionStyle: "text"});
     editor.resize()
     editor.setTheme("ace/theme/monokai");
-    editor.getSession().setMode("ace/mode/latex");
+    editor.session.setMode("ace/mode/latex");
     editor.getSession().setUseSoftTabs(true);
+
+    // Disabling worker so that our own LaTeX error annotations are not overriden
+    // editor.session.setOption("useWorker", false)
+    editor.session.setOption("useWorker", false)
 
     let text = editor.getValue();
     let generator = new latexjs.HtmlGenerator({ hyphenate: false });
@@ -153,10 +158,26 @@ function createEditorInstance () {
                 previewDisplay.innerHTML = content;
             }
 
+            editor.getSession().clearAnnotations();
+            
         } catch (error) {
-            console.log(error)
+            highlightError(error);
+            console.log(error);
         }
     });
+}
+
+function highlightError(error) {
+    let errMsg = `${error.name}: ${error.message}`;
+    
+    if (error.location !== undefined) {
+        editor.getSession().setAnnotations([{
+            row: error.location.start.line - 1,
+            column: error.location.start.column + 1,
+            text: errMsg,
+            type: "error" // also warning and information
+        }]); 
+    }
 }
 
 function saveFile () {
@@ -337,6 +358,7 @@ function refreshPreview(graphsToRender) {
       }()) })
 
     try {
+        editor.getSession().clearAnnotations();
         generator = latexjs.parse(text, { generator: generator });
         renderContainsImage = false;
         
@@ -346,10 +368,11 @@ function refreshPreview(graphsToRender) {
         previewDisplay.innerHTML = content
         return; 
     } catch (error) {
-        console.log(error)
+        console.log(`ERROR: ${error}`)
+        highlightError();
     }
 }
-
+ 
 function graphScreenshot(eqn, graphsToRender) {
     var screenshotTempElt = document.createElement('div');
     screenshotTempElt.style.display = "none";
@@ -394,10 +417,10 @@ function exportToPDF() {
 
     const pathHandler = require("@electron/remote");
 
-    let finalHTML =  "<link rel=\"stylesheet\" href=\"article.css\"><link rel=\"stylesheet\" href=\"base.css\"><link rel=\"stylesheet\" href=\"book.css\"><link rel=\"stylesheet\" href=\"katex.css\">" + previewDisplay.innerHTML;
+    let finalHTML =  "<link rel=\"stylesheet\" href=\"article.css\"><link rel=\"stylesheet\" href=\"./css/base.css\"><link rel=\"stylesheet\" href=\"book.css\"><link rel=\"stylesheet\" href=\"katex.css\">" + previewDisplay.innerHTML;
 
     var tempPath = pathHandler.app.getPath('temp') + 'toRender.html';
-
+    console.log(pathHandler.app.getPath('userData'))
     dialog.showSaveDialog({
         title: 'Select the File Path to export',
         defaultPath: path.join(__dirname, '../assets/sample.pdf'),
@@ -421,12 +444,12 @@ function exportToPDF() {
                 }
                 // file written successfully
                 var html = fs.readFileSync(tempPath, 'utf8');
-                var options = { format: 'A4', base: "../css/",   "border": {
+                var options = { format: 'A4', base: pathHandler.app.getPath('userData'),   "border": {
                     "top": "0.25in",            // default is 0, units: mm, cm, in, px
                     "right": "0.5in",
                     "bottom": "0.25in",
                     "left": "0.5in"
-                  }};
+                  }, "localUrlAccess": true};
         
                 pdf.create(html, options).toFile(filePath, function(err, res) {
                     if (err) return console.log(err);
