@@ -16,6 +16,64 @@
   </head>
   <body scroll="no">
     <div>
+          <div class="modal lookupInfoModal" id="lookupInfoModal">
+            <div class="modal-background"></div>
+            <div class="modal-card">
+              <header class="modal-card-head">
+                <p class="modal-card-title">Spellbook</p>
+                <button id="closeInfoModal" class="delete" aria-label="close" data-tooltip="Close">
+                  <span class="icon is-medium"><i class="fa-solid fa-xmark" aria-hidden="true"></i></span>
+                </button>
+              </header>
+              <section class="modal-card-body">
+                <div class="tabs is-boxed">
+                  <ul>
+                    <li class="is-active">
+                       <a>
+                        <span class="icon is-small"><i class="fa-solid fa-calculator" aria-hidden="true"></i></span>
+                        <span>Math Guide</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a>
+                        <span class="icon is-small"><i class="fas fa-file-lines" aria-hidden="true"></i></span>
+                        <span>Structuring Documents</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a>
+                        <span class="icon is-small"><i class="fas fa-chart-area" aria-hidden="true"></i></span>
+                        <span>Creating Graphs</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a>
+                        <span class="icon is-small"><i class="fa-solid fa-heart" aria-hidden="true"></i></span>
+                        <span>About Mileva</span>
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="infoModalContent">
+                  <h1 class="modalHeading">Maths in Mileva</h1>
+                  <p>Mileva currently only supports KaTeX for writing mathematical expressions. The table below outlines all useful support functions as per the official KaTeX documentation:</p>
+                  <h3 class="modalHeading">Writing Accents</h3>
+                  <div class="table-container">
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th>Symbol</th>
+                          <th>Code</th>
+                        </tr>
+                      </thead>
+                    </table>
+                  </div>
+                </div>
+              </section>
+              <footer class="modal-card-foot">
+              </footer>
+            </div>
+          </div>
         <input type="file" id="folderSelector" style="display: none;" webkitdirectory directory></input>
         <div id="graphingToolPopover" class="graphingToolPopover">
           <div class="graphingToolButtons">
@@ -46,8 +104,8 @@
                       </button>
                     </div>
                     <div class="sidebarBtnBuffer">
-                      <button class="sidebarBtn" id="table" data-tooltip="Insert Table">
-                        <img src="resources/svg/table.svg" class="sidebarBtnIcon"/>
+                      <button class="sidebarBtn" id="lookup" data-tooltip="Spellbook">
+                        <img src="resources/svg/tips.svg" class="sidebarBtnIcon"/>
                       </button>
                     </div>
                 </div>

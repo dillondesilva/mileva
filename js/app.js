@@ -11,6 +11,7 @@ let previewDisplay = document.getElementById("previewDisplay");
 let folderSelector = document.getElementById("folderSelector");
 
 const graphingToolPopover = document.getElementById('graphingToolPopover');
+const lookupInfoModal = document.getElementById('lookupInfoModal');
 const mainView = document.getElementById('mainView');
 const desmos = require('desmos');
 const { throws } = require("assert");
@@ -43,6 +44,12 @@ window.onload = () => {
 
     const gridButton = document.querySelector("#grid");
     gridButton.onclick = graphingToolOpen;
+
+    const infoButton = document.querySelector("#lookup");
+    infoButton.onclick = infoLookupOpen;
+
+    const closeInfoModalButton = document.querySelector("#closeInfoModal");
+    closeInfoModalButton.onclick = closeInfoModal;
 
     const insertGraphButton = document.querySelector("#btnInsert");
     btnInsert.onclick = insertGraph;
@@ -460,4 +467,12 @@ function exportToPDF() {
     }).catch(err => {
         console.log(err)
     });
+}
+
+function infoLookupOpen() {
+    lookupInfoModal.style.display = 'block';
+}
+
+function closeInfoModal() {
+    lookupInfoModal.style.display = "none";
 }
