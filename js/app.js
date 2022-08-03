@@ -36,6 +36,7 @@ let renderContainsImage = false;
 
 window.onload = () => {
     createEditorInstance();
+    copyStylingFiles();
 
     const saveButton = document.querySelector('#save');
     saveButton.onclick = saveFile;
@@ -48,8 +49,20 @@ window.onload = () => {
     const infoButton = document.querySelector("#lookup");
     infoButton.onclick = infoLookupOpen;
 
-    const closeInfoModalButton = document.querySelector("#closeInfoModal");
+    let closeInfoModalButton = document.querySelector("#closeInfoModal");
     closeInfoModalButton.onclick = closeInfoModal;
+
+    let btnMathInfo = document.querySelector("#btnMathInfo");
+    btnMathInfo.onclick = () => setActiveModalTab(btnMathInfo);
+
+    let btnDocInfo = document.querySelector("#btnDocInfo");
+    btnDocInfo.onclick = () => setActiveModalTab(btnDocInfo);
+
+    let btnGraphInfo = document.querySelector("#btnGraphInfo");
+    btnGraphInfo.onclick = () => setActiveModalTab(btnGraphInfo);
+
+    let btnMilevaInfo = document.querySelector("#btnMilevaInfo");
+    btnMilevaInfo.onclick = () => setActiveModalTab(btnMilevaInfo);
 
     const insertGraphButton = document.querySelector("#btnInsert");
     btnInsert.onclick = insertGraph;
@@ -408,7 +421,7 @@ function graphScreenshot(eqn, graphsToRender) {
 }
 
 function insertEquation() {
-    let eqnText = "\n$$"
+    let eqnText = "\n$$y=e^{i\\pi} + 1 = 0$$"
     editor.session.insert(editor.getCursorPosition(), eqnText);
     let newCursorPos = editor.getCursorPosition();
     newCursorPos.column -= 1;
@@ -424,10 +437,10 @@ function exportToPDF() {
 
     const pathHandler = require("@electron/remote");
 
-    let finalHTML =  "<link rel=\"stylesheet\" href=\"article.css\"><link rel=\"stylesheet\" href=\"./css/base.css\"><link rel=\"stylesheet\" href=\"book.css\"><link rel=\"stylesheet\" href=\"katex.css\">" + previewDisplay.innerHTML;
+    let finalHTML =  "<link rel=\"stylesheet\" href=\"article.css\"><link rel=\"stylesheet\" href=\"base.css\"><link rel=\"stylesheet\" href=\"book.css\"><link rel=\"stylesheet\" href=\"katex.css\">" + previewDisplay.innerHTML;
 
     var tempPath = pathHandler.app.getPath('temp') + 'toRender.html';
-    console.log(pathHandler.app.getPath('userData'))
+  
     dialog.showSaveDialog({
         title: 'Select the File Path to export',
         defaultPath: path.join(__dirname, '../assets/sample.pdf'),
@@ -449,6 +462,9 @@ function exportToPDF() {
                 if (err) {
                     console.error(err);
                 }
+
+                var files = fs.readdirSync(pathHandler.app.getPath('temp'));
+                console.log(files)
                 // file written successfully
                 var html = fs.readFileSync(tempPath, 'utf8');
                 var options = { format: 'A4', base: pathHandler.app.getPath('userData'),   "border": {
@@ -456,8 +472,8 @@ function exportToPDF() {
                     "right": "0.5in",
                     "bottom": "0.25in",
                     "left": "0.5in"
-                  }, "localUrlAccess": true};
-        
+                  }};
+                  
                 pdf.create(html, options).toFile(filePath, function(err, res) {
                     if (err) return console.log(err);
                     console.log(res); // { filename: '/app/businesscard.pdf' }
@@ -475,4 +491,24 @@ function infoLookupOpen() {
 
 function closeInfoModal() {
     lookupInfoModal.style.display = "none";
+}
+
+function setActiveModalTab(newActive) {
+    btnMathInfo.classList.remove("is-active");
+    btnDocInfo.classList.remove("is-active");
+    btnGraphInfo.classList.remove("is-active");
+    btnMilevaInfo.classList.remove("is-active");
+
+    newActive.classList.add("is-active");
+}
+
+function copyStylingFiles() {
+    const pathHandler = require("@electron/remote");
+    const fs = require('fs');
+
+    var udataPath = pathHandler.app.getPath('temp');
+    fs.copyFile('../css/base.css', udataPath + 'base.css', (err) => {
+        if (err) throw err;     
+        console.log('source.txt was copied to destination.txt');
+    });
 }
