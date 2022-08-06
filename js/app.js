@@ -19,6 +19,11 @@ const { contextIsolated } = require("process");
 const { UndoManager } = require("ace-builds");
 const elt = document.createElement('div');
 
+let modalMathInfo = document.getElementById("modalMathInfo");
+let modalDocInfo = document.getElementById("modalDocInfo");
+let modalGraphInfo = document.getElementById("modalGraphInfo");
+let modalMilevaInfo = document.getElementById("modalMilevaInfo");
+
 elt.setAttribute("id", "desmosCalc")
 elt.style.width = '60vw';
 elt.style.height = '80vh';
@@ -29,7 +34,7 @@ elt.style.transform = 'translate(-50%, -0%)';
 elt.style.top = '0vh';
 elt.style.left = '50%';
 
-const calculator = desmos.GraphingCalculator(elt, {border: false});
+const calculator = desmos.GraphingCalculator(elt, {border: false, images: false, folders: false, notes: false, sliders: false});
 
 let screenshot;
 let renderContainsImage = false;
@@ -53,16 +58,16 @@ window.onload = () => {
     closeInfoModalButton.onclick = closeInfoModal;
 
     let btnMathInfo = document.querySelector("#btnMathInfo");
-    btnMathInfo.onclick = () => setActiveModalTab(btnMathInfo);
+    btnMathInfo.onclick = () => setActiveModalTab(btnMathInfo, modalMathInfo);
 
     let btnDocInfo = document.querySelector("#btnDocInfo");
-    btnDocInfo.onclick = () => setActiveModalTab(btnDocInfo);
+    btnDocInfo.onclick = () => setActiveModalTab(btnDocInfo, modalDocInfo);
 
     let btnGraphInfo = document.querySelector("#btnGraphInfo");
-    btnGraphInfo.onclick = () => setActiveModalTab(btnGraphInfo);
+    btnGraphInfo.onclick = () => setActiveModalTab(btnGraphInfo, modalGraphInfo);
 
     let btnMilevaInfo = document.querySelector("#btnMilevaInfo");
-    btnMilevaInfo.onclick = () => setActiveModalTab(btnMilevaInfo);
+    btnMilevaInfo.onclick = () => setActiveModalTab(btnMilevaInfo, modalMilevaInfo);
 
     const insertGraphButton = document.querySelector("#btnInsert");
     btnInsert.onclick = insertGraph;
@@ -467,12 +472,14 @@ function exportToPDF() {
                 console.log(files)
                 // file written successfully
                 var html = fs.readFileSync(tempPath, 'utf8');
-                var options = { format: 'A4', base: pathHandler.app.getPath('userData'),   "border": {
+                var options = { format: 'A4', base: "file:///"+ pathHandler.app.getPath('temp'),   "border": {
                     "top": "0.25in",            // default is 0, units: mm, cm, in, px
                     "right": "0.5in",
                     "bottom": "0.25in",
                     "left": "0.5in"
-                  }};
+                  },
+                  "localUrlAccess": true
+                };
                   
                 pdf.create(html, options).toFile(filePath, function(err, res) {
                     if (err) return console.log(err);
@@ -487,28 +494,41 @@ function exportToPDF() {
 
 function infoLookupOpen() {
     lookupInfoModal.style.display = 'block';
+    setActiveModalTab(btnMathInfo, modalMathInfo);
 }
 
 function closeInfoModal() {
     lookupInfoModal.style.display = "none";
 }
 
-function setActiveModalTab(newActive) {
+function setActiveModalTab(newActive, modalInfo) {
     btnMathInfo.classList.remove("is-active");
     btnDocInfo.classList.remove("is-active");
     btnGraphInfo.classList.remove("is-active");
     btnMilevaInfo.classList.remove("is-active");
 
+    modalMathInfo.style.display = "none";
+    modalDocInfo.style.display = "none";
+    modalGraphInfo.style.display = "none";
+    modalMilevaInfo.style.display = "none";
+
     newActive.classList.add("is-active");
+    modalInfo.style.display = "block";
 }
 
 function copyStylingFiles() {
     const pathHandler = require("@electron/remote");
-    const fs = require('fs');
+    const fs = require('fs-extra');
 
     var udataPath = pathHandler.app.getPath('temp');
-    fs.copyFile('../css/base.css', udataPath + 'base.css', (err) => {
+    console.log("PRE COPY MSG")
+    // fs.copyFile(__dirname + '/re/base.css', udataPath + 'base.css', (err) => {
+    //     if (err) throw err;     
+    //     console.log('source.txt was copied to destination.txt');
+    // });
+
+    fs.copy(__dirname + "/resources/runtime/", udataPath, (err) => {
         if (err) throw err;     
-        console.log('source.txt was copied to destination.txt');
+        console.log('source.txt was copied to dest');
     });
 }

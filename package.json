@@ -26,6 +26,7 @@
     "desmos": "^1.5.4",
     "electron": "^19.0.9",
     "file-saver": "^2.0.5",
+    "fs-extra": "^10.1.0",
     "html-pdf": "^3.0.1",
     "html2canvas": "^1.4.1",
     "jquery": "^3.6.0",
