@@ -5,7 +5,7 @@
 /*******************/
 
 :root, :host {
-    --size: 8pt;
+    --size: 10pt;
     --line-height: 1.2;
 
     /* --linewidth makes no sense here; it is the width of the line in the current environment */
@@ -191,7 +191,7 @@ html, .page {
 }
 
 .katex {
-    font-size: 0.5em !important;
+    font-size: 1em !important;
 }
 
 .katex,
@@ -282,43 +282,43 @@ html, .page {
 /* size */
 
 .tiny {
-    font-size: .3rem;
-}
-
-.scriptsize {
     font-size: .5rem;
 }
 
+.scriptsize {
+    font-size: .7rem;
+}
+
 .footnotesize {
-    font-size: .80rem;
+    font-size: .82rem;
 }
 
 .small {
-    font-size: .89rem;
+    font-size: .91rem;
 }
 
 .normalsize {
-    font-size: 0.8rem;
+    font-size: 1rem;
 }
 
 .large {
-    font-size: 1.0rem;
-}
-
-.Large {
     font-size: 1.2rem;
 }
 
+.Large {
+    font-size: 1.4rem;
+}
+
 .LARGE {
-    font-size: 1.5rem;
+    font-size: 1.7rem;
 }
 
 .huge {
-    font-size: 1.8rem;
+    font-size: 2rem;
 }
 
 .Huge {
-    font-size: 2.3rem;
+    font-size: 2.5rem;
 }
 
 
@@ -344,11 +344,11 @@ h1, h2, h3, h4 {
 }
 
 .title {
-    font-size: 1.5rem;  /* LARGE */
+    font-size: 1.7rem;  /* LARGE */
 }
 
 .author, .date {
-    font-size: 1.0rem;  /* large */
+    font-size: 1.2rem;  /* large */
 }
 
 
@@ -801,7 +801,7 @@ span.latex {
 }
 
 span.latex > .a {
-    font-size: 0.6em;
+    font-size: 0.8em;
     vertical-align: 0.2em;
     margin-left:  -0.45em;
     margin-right: -0.15em;
