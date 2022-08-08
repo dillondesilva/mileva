@@ -5,6 +5,7 @@
   "main": "./js/main.js",
   "scripts": {
     "start": "electron .",
+    "build": "build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "css-build": "node-sass --omit-source-map-url css/pageBase.scss css/pageBase.css",
     "css-watch": "npm run css-build -- --watch",
@@ -14,6 +15,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@electron-forge/cli": "^6.0.0-beta.65",
+    "electron-builder": "^23.3.3",
     "node-sass": "^7.0.1"
   },
   "dependencies": {
@@ -26,6 +29,7 @@
     "desmos": "^1.5.4",
     "electron": "^19.0.9",
     "file-saver": "^2.0.5",
+    "fs-extra": "^10.1.0",
     "html-pdf": "^3.0.1",
     "html2canvas": "^1.4.1",
     "jquery": "^3.6.0",

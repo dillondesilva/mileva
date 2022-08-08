@@ -264,3 +264,7 @@ body {
 .modalHeading {
     font-family: "Jost-Bold";
 }
+
+.hide {
+    display: none;
+}

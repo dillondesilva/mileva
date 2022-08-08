@@ -7,12 +7,13 @@
     <link rel="stylesheet" href="css/editor.css">
     <link rel="stylesheet" href="css/pageBase.css">
     <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"> -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/latex.js@0.12.4/dist/">
-    <link type="text/css" rel="stylesheet" href="./css/katex.css">
-    <link type="text/css" rel="stylesheet" href="./css/article.css">
+    <link type="text/css" rel="stylesheet" href="css/katex.css">
+    <link type="text/css" rel="stylesheet" href="css/article.css">
+    <link type="text/css" rel="stylesheet" href="css/base.css">
+    <link type="text/css" rel="stylesheet" href="css/book.css">
     <script src="node_modules/latex.js/dist/latex.js"></script>
     <script src="node_modules/ace-builds/src/ace.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
+    <!-- <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css"> -->
   </head>
   <body scroll="no">
     <div>
@@ -54,7 +55,7 @@
                     </li>
                   </ul>
                 </div>
-                <div class="infoModalContent">
+                <div class="infoModalContent is-active" id="modalMathInfo">
                   <h1 class="modalHeading">Maths in Mileva</h1>
                   <p>Mileva currently only supports KaTeX for writing mathematical expressions. The table below outlines all useful support functions as per the official KaTeX documentation:</p>
                   <h3 class="modalHeading">Writing Accents</h3>
@@ -76,6 +77,21 @@
                       </tbody>
                     </table>
                   </div>
+                </div>
+                <div class="infoModalContent" id="modalDocInfo">
+                  <h1 class="modalHeading">Structuring Documents</h1>
+                  <p>Mileva has a document structure that is easy to understand, allowing you to focus on writing that matters. When modifying a Mileva document, bear</p>
+                  <h3 class="modalHeading">Writing Accents</h3>
+                </div>
+                <div class="infoModalContent" id="modalGraphInfo">
+                  <h1 class="modalHeading">Creating Graphs</h1>
+                  <p>With our Desmos integrated graphing calculator, you can style and implement slick graphs without knowing any LaTeX at all! Simply press the <code>Create Graph</code> button to get started!</p>
+                  <h3 class="modalHeading">Writing Accents</h3>
+                </div>
+                <div class="infoModalContent" id="modalMilevaInfo">
+                  <h1 class="modalHeading">About Mileva</h1>
+                  <p>Mileva was built by Dillon de Silva and William Kennedy. We'</p>
+                  <h3 class="modalHeading">Writing Accents</h3>
                 </div>
               </section>
               <footer class="modal-card-foot">
@@ -154,31 +170,11 @@
         <div class="editor">
           <div class="tabSelector">
             <div class="tabs is-left">
-              <ul>
-                <li class="is-left">
-                  <a>
-                    <span class="icon-text">
-                      <span class="tabNameText">untitled.tex</span>
-                      <span class="icon">
-                        <i class="fa-solid fa-xmark"></i>
-                      </span>
-                    </span>
-                  </a>
-                </li>
-                <li>
-                  <a>
-                    <span class="icon-text">
-                      <span class="tabNameText">untitled.tex</span>
-                      <span class="icon">
-                        <i class="fa-solid fa-xmark"></i>
-                      </span>
-                    </span>
-                  </a>
-                </li>
-              </ul>
+              <ul></ul>
             </div>  
-          </div>        
-          <div id="editor" class="editorArea" focus=true>\documentclass{article}
+          </div>
+          <div id="editor" class="editorArea" focus=true>
+\documentclass{article}
 
 \usepackage{comment, multicol}
 \usepackage{hyperref}
@@ -214,7 +210,6 @@ Lopseum Ipsum Delor
 
 
 \end{document}
-                      
           </div>   
         </div>
         </div>
