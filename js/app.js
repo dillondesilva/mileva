@@ -4,13 +4,11 @@ const Swal = require('sweetalert2')
 const $ = require("jquery");
 const HOME_DIRECTORY = require('os').homedir();
 
-
-let pendingCalls = 0;
-
 let previewDisplay = document.getElementById("previewDisplay");
 let folderSelector = document.getElementById("folderSelector");
 
-let editorInstances = 1;
+let editorInstances = [];
+let currentEditor;
 
 const graphingToolPopover = document.getElementById('graphingToolPopover');
 const lookupInfoModal = document.getElementById('lookupInfoModal');
@@ -19,13 +17,13 @@ const desmos = require('desmos');
 const { throws } = require("assert");
 const { contextIsolated } = require("process");
 const { UndoManager } = require("ace-builds");
-const elt = document.createElement('div');
 
 let modalMathInfo = document.getElementById("modalMathInfo");
 let modalDocInfo = document.getElementById("modalDocInfo");
 let modalGraphInfo = document.getElementById("modalGraphInfo");
 let modalMilevaInfo = document.getElementById("modalMilevaInfo");
 
+const elt = document.createElement('div');
 elt.setAttribute("id", "desmosCalc")
 elt.style.width = '60vw';
 elt.style.height = '80vh';
@@ -42,6 +40,9 @@ let screenshot;
 let renderContainsImage = false;
 
 window.onload = () => {
+    createEditorInstance(`welcome.tex`);
+    createEditorInstance();
+    createEditorInstance();
     createEditorInstance();
     copyStylingFiles();
 
@@ -129,45 +130,52 @@ function createFolderClickHandeler (folderIcon) {
     });
 }
 
-function createEditorInstance () {
+function createEditorInstance (fileName=null) {
     let editorDiv;
-    if (editorInstances > 1) {
+    if (editorInstances.length > 0) {
         editorDiv = document.createElement("div");
-        editorDiv.id = `editor${editorInstances}`;
+        editorDiv.id = `editor${editorInstances.length + 1}`;
         editorDiv.classList.add(`editorArea`);
         editorDiv.classList.add(`hide`);
         editorDiv.focus = false;
         $('.editor').append(editorDiv);
     }
 
-    let editor = ace.edit(`${editorInstances > 1 ? editorDiv.id : "editor"}`, {selectionStyle: "text"});
-    editor.resize()
+    let editor = ace.edit(`${editorInstances.length > 0 ? editorDiv.id : "editor"}`, {selectionStyle: "text"});
+    editor.resize();
     editor.setTheme("ace/theme/monokai");
     editor.session.setMode("ace/mode/latex");
     editor.getSession().setUseSoftTabs(true);
 
+    editor.on("focus", function () {
+        currentEditor = editor;
+    });
+
     // Disabling worker so that our own LaTeX error annotations are not overriden
     // editor.session.setOption("useWorker", false)
-    editor.session.setOption("useWorker", false)
+    editor.session.setOption("useWorker", false);
 
-    let text = editor.getValue();
-    let generator = new latexjs.HtmlGenerator({ hyphenate: false });
+    // this is a bit of a hacky solution to force the preview to only occur
+    // for the first editor instance which is rendered
+    if (!editorInstances.length) {
+        let text = editor.getValue();
+        let generator = new latexjs.HtmlGenerator({ hyphenate: false });
 
-    generator = latexjs.parse(text, { generator: generator });
+        generator = latexjs.parse(text, { generator: generator });
 
-    let doc = generator.htmlDocument();
+        let doc = generator.htmlDocument();
 
-    let stylesInfo = doc.head.innerHTML;
-    let content = doc.body.innerHTML;
+        let stylesInfo = doc.head.innerHTML;
+        let content = doc.body.innerHTML;
 
-    previewDisplay.innerHTML = content;
+        previewDisplay.innerHTML = content;
+    }
 
     editor.session.on("change", (e) => {
         let text = editor.getValue();
         let graphsToRender = [];
         let generator = new latexjs.HtmlGenerator({ hyphenate: false, CustomMacros: (function() {
-            var args      = CustomMacros.args = {},
-                prototype = CustomMacros.prototype;
+            let args = CustomMacros.args = {}, prototype = CustomMacros.prototype;
         
             function CustomMacros(generator) {
               this.g = generator;
@@ -178,12 +186,12 @@ function createEditorInstance () {
             prototype['graph'] = function(expr) {
                 let exprAnnotated = expr.querySelector('annotation');
                 expr = "y=" + exprAnnotated.innerHTML;
-                console.log(expr)
-                graphScreenshot(expr, graphsToRender);        
+                graphScreenshot(editor, expr, graphsToRender);        
             };
         
             return CustomMacros;
-          }()) })
+          }()) });
+
 
         try {
             generator = latexjs.parse(text, { generator: generator });
@@ -198,17 +206,16 @@ function createEditorInstance () {
             editor.getSession().clearAnnotations();
             
         } catch (error) {
-            highlightError(error);
-            console.log(error);
+            highlightError(editor, error);
         }
     });
 
-    document.querySelector('.tabSelector .tabs ul').appendChild(new DOMParser().parseFromString(`<li><a data-target="${editorInstances > 1 ? editorDiv.id : "editor"}"><span class="icon-text"><span class="tabNameText">untitled.tex</span><span class="icon"><i class="fa-solid fa-xmark"></i></span></span></a></li>`, `text/html`).body.firstElementChild);
+    document.querySelector('.tabSelector .tabs ul').appendChild(new DOMParser().parseFromString(`<li><a data-target="${editorInstances > 1 ? editorDiv.id : "editor"}"><span class="icon-text"><span class="tabNameText">${fileName === null ? "untitled.tex" : fileName}</span><span class="icon"><i class="fa-solid fa-xmark"></i></span></span></a></li>`, `text/html`).body.firstElementChild);
 
-    editorInstances++;
+    editorInstances.push(editor);
 }
 
-function highlightError(error) {
+function highlightError(editor, error) {
     let errMsg = `${error.name}: ${error.message}`;
     
     if (error.location !== undefined) {
@@ -221,7 +228,7 @@ function highlightError(error) {
     }
 }
 
-function saveFile () {
+function saveFile (editor) {
     const contents = editor.getValue();
 
     dialog.showSaveDialog({
@@ -368,15 +375,15 @@ function insertGraph() {
     expr = expr.replace('y=', '')
     let graphLatex = "\n" + "\\graph{$" + expr + "$}\n";
     
-    editor.session.insert(editor.getCursorPosition(), graphLatex);
+    currentEditor.session.insert(currentEditor.getCursorPosition(), graphLatex);
     graphingToolPopover.style.display = 'none'; 
     mainView.style.opacity = '1';
     return;
 }
 
 function refreshPreview(graphsToRender) {
-    console.log(graphsToRender)
-    let text = editor.getValue();
+    //console.log(graphsToRender)
+    let text = currentEditor.getValue();
     let currGraphNum = -1;
 
     let generator = new latexjs.HtmlGenerator({ hyphenate: false, CustomMacros: (function() {
@@ -399,7 +406,7 @@ function refreshPreview(graphsToRender) {
       }()) })
 
     try {
-        editor.getSession().clearAnnotations();
+        currentEditor.getSession().clearAnnotations();
         generator = latexjs.parse(text, { generator: generator });
         renderContainsImage = false;
         
@@ -410,7 +417,7 @@ function refreshPreview(graphsToRender) {
         return; 
     } catch (error) {
         console.log(`ERROR: ${error}`)
-        highlightError();
+        highlightError(currentEditor, error);
     }
 }
  
@@ -441,26 +448,26 @@ function graphScreenshot(eqn, graphsToRender) {
     });  
 }
 
-function insertEquation() {
+function insertEquation(edior) {
     let eqnText = "\n$$y=e^{i\\pi} + 1 = 0$$"
-    editor.session.insert(editor.getCursorPosition(), eqnText);
-    let newCursorPos = editor.getCursorPosition();
+    currentEditor.session.insert(currentEditor.getCursorPosition(), eqnText);
+    let newCursorPos = currentEditor.getCursorPosition();
     newCursorPos.column -= 1;
-    editor.moveCursorToPosition(newCursorPos);
-    editor.clearSelection();
-    editor.focus();
+    currentEditor.moveCursorToPosition(newCursorPos);
+    currentEditor.clearSelection();
+    currentEditor.focus();
 }
 
 
 function exportToPDF() {
-    var fs = require('fs');
-    var pdf = require('html-pdf');
+    const fs = require('fs');
+    const pdf = require('html-pdf');
 
     const pathHandler = require("@electron/remote");
 
-    let finalHTML =  "<link rel=\"stylesheet\" href=\"article.css\"><link rel=\"stylesheet\" href=\"base.css\"><link rel=\"stylesheet\" href=\"book.css\"><link rel=\"stylesheet\" href=\"katex.css\">" + previewDisplay.innerHTML;
+    const finalHTML =  "<link rel=\"stylesheet\" href=\"article.css\"><link rel=\"stylesheet\" href=\"base.css\"><link rel=\"stylesheet\" href=\"book.css\"><link rel=\"stylesheet\" href=\"katex.css\">" + previewDisplay.innerHTML;
 
-    var tempPath = pathHandler.app.getPath('temp') + 'toRender.html';
+    let tempPath = pathHandler.app.getPath('temp') + 'toRender.html';
   
     dialog.showSaveDialog({
         title: 'Select the File Path to export',
@@ -476,7 +483,7 @@ function exportToPDF() {
         properties: []
     }).then(file => {
         // Stating whether dialog operation was cancelled or not.
-        console.log(file.canceled);
+        //console.log(file.canceled);
         if (!file.canceled) {
             let filePath = file.filePath.toString();
             fs.writeFile(tempPath,  finalHTML, { flag: 'w+' }, err => {
@@ -485,7 +492,7 @@ function exportToPDF() {
                 }
 
                 var files = fs.readdirSync(pathHandler.app.getPath('temp'));
-                console.log(files)
+                //console.log(files)
                 // file written successfully
                 var html = fs.readFileSync(tempPath, 'utf8');
                 var options = { format: 'A4', base: "file:///"+ pathHandler.app.getPath('temp'),   "border": {
