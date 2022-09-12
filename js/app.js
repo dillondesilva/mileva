@@ -7,7 +7,7 @@ const HOME_DIRECTORY = require('os').homedir();
 let previewDisplay = document.getElementById("previewDisplay");
 let folderSelector = document.getElementById("folderSelector");
 
-let editorInstances = [];
+let editorInstances = {};
 let currentEditor;
 
 const graphingToolPopover = document.getElementById('graphingToolPopover');
@@ -41,9 +41,6 @@ let renderContainsImage = false;
 
 window.onload = () => {
     createEditorInstance(`welcome.tex`);
-    createEditorInstance();
-    createEditorInstance();
-    createEditorInstance();
     copyStylingFiles();
 
     const saveButton = document.querySelector('#save');
@@ -130,18 +127,35 @@ function createFolderClickHandeler (folderIcon) {
     });
 }
 
+function changeTab (tab) {
+    document.querySelectorAll(".editor .editorArea").forEach(editorDiv => {
+        console.log(editorDiv);
+        editorDiv.classList.add("hide");
+    });
+
+    document.querySelector(`#${tab}`).classList.remove("hide");
+
+    for (let editor in editorInstances) {
+        if (editor == tab) {
+            editorInstances[editor].focus = true;
+        } else {
+            editorInstances[editor].focus = false;
+        }
+    }
+}
+
 function createEditorInstance (fileName=null) {
-    let editorDiv;
-    if (editorInstances.length > 0) {
+    let editorDiv = null;
+    if (Object.entries(editorInstances).length > 0) {
         editorDiv = document.createElement("div");
-        editorDiv.id = `editor${editorInstances.length + 1}`;
+        editorDiv.id = `editor${Object.entries(editorInstances).length + 1}`;
         editorDiv.classList.add(`editorArea`);
         editorDiv.classList.add(`hide`);
         editorDiv.focus = false;
         $('.editor').append(editorDiv);
     }
 
-    let editor = ace.edit(`${editorInstances.length > 0 ? editorDiv.id : "editor"}`, {selectionStyle: "text"});
+    let editor = ace.edit(`${Object.entries(editorInstances).length > 0 ? editorDiv.id : "editor"}`, {selectionStyle: "text"});
     editor.resize();
     editor.setTheme("ace/theme/monokai");
     editor.session.setMode("ace/mode/latex");
@@ -157,7 +171,7 @@ function createEditorInstance (fileName=null) {
 
     // this is a bit of a hacky solution to force the preview to only occur
     // for the first editor instance which is rendered
-    if (!editorInstances.length) {
+    if (!Object.entries(editorInstances).length) {
         let text = editor.getValue();
         let generator = new latexjs.HtmlGenerator({ hyphenate: false });
 
@@ -186,7 +200,7 @@ function createEditorInstance (fileName=null) {
             prototype['graph'] = function(expr) {
                 let exprAnnotated = expr.querySelector('annotation');
                 expr = "y=" + exprAnnotated.innerHTML;
-                graphScreenshot(editor, expr, graphsToRender);        
+                graphScreenshot(expr, graphsToRender);        
             };
         
             return CustomMacros;
@@ -210,9 +224,28 @@ function createEditorInstance (fileName=null) {
         }
     });
 
-    document.querySelector('.tabSelector .tabs ul').appendChild(new DOMParser().parseFromString(`<li><a data-target="${editorInstances > 1 ? editorDiv.id : "editor"}"><span class="icon-text"><span class="tabNameText">${fileName === null ? "untitled.tex" : fileName}</span><span class="icon"><i class="fa-solid fa-xmark"></i></span></span></a></li>`, `text/html`).body.firstElementChild);
+    document.querySelector('.tabSelector .tabs ul').appendChild(new DOMParser().parseFromString(`<li><a data-target="${Object.entries(editorInstances).length >= 1 ? editorDiv.id : "editor"}"><span class="icon-text"><span class="tabNameText">${fileName === null ? "untitled.tex" : fileName}</span><span class="icon"><i class="fa-solid fa-xmark"></i></span></span></a></li>`, `text/html`).body.firstElementChild);
+    document.querySelectorAll('.tabSelector .tabs ul li a').forEach(el => {
+        let targetValue = el.attributes.item("data-target").value;
+        
+        el.onclick = () => { 
+            changeTab(targetValue);
+        };
+    });
 
-    editorInstances.push(editor);
+    editorInstances[editorDiv != null ? editorDiv.id : "editor"] = editor;
+
+    return editor;
+}
+
+function openFile (filePath) {
+    const fileArray = filePath.includes('/') ? filePath.split('/') : filePath.split('\\');
+    const fileName = fileArray[fileArray.length-1];
+
+    const text = fs.readFileSync(filePath, {encoding: 'utf8', flag: 'r'});
+
+    let editor = createEditorInstance(fileName);
+    editor.setValue(text);
 }
 
 function highlightError(editor, error) {
@@ -229,7 +262,7 @@ function highlightError(editor, error) {
 }
 
 function saveFile (editor) {
-    const contents = editor.getValue();
+    const contents = currentEditor.getValue();
 
     dialog.showSaveDialog({
         buttonLabel: 'Save Document',
@@ -339,6 +372,10 @@ function displayFolder (folderPath, parentPath, parentNode=true, parentEl=null, 
         folderEl.classList.add("file");
         folderEl.classList.add("folderElement");
         folderEl.appendChild(iconTextEl);
+
+        iconTextEl.onclick = () => {
+            openFile(parentPath);
+        }
 
         parentEl.appendChild(folderEl);
     }
