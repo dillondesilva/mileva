@@ -40,7 +40,7 @@ let screenshot;
 let renderContainsImage = false;
 
 window.onload = () => {
-    createEditorInstance(`welcome.tex`);
+    currentEditor = createEditorInstance(`welcome.tex`);
     copyStylingFiles();
 
     const saveButton = document.querySelector('#save');
@@ -129,7 +129,6 @@ function createFolderClickHandeler (folderIcon) {
 
 function changeTab (tab) {
     document.querySelectorAll(".editor .editorArea").forEach(editorDiv => {
-        console.log(editorDiv);
         editorDiv.classList.add("hide");
     });
 
@@ -137,9 +136,7 @@ function changeTab (tab) {
 
     for (let editor in editorInstances) {
         if (editor == tab) {
-            editorInstances[editor].focus = true;
-        } else {
-            editorInstances[editor].focus = false;
+            editorInstances[editor].focus();
         }
     }
 }
@@ -161,9 +158,9 @@ function createEditorInstance (fileName=null) {
     editor.session.setMode("ace/mode/latex");
     editor.getSession().setUseSoftTabs(true);
 
-    editor.on("focus", function () {
+    editor.session.on("focus", () => {
         currentEditor = editor;
-    });
+    })
 
     // Disabling worker so that our own LaTeX error annotations are not overriden
     // editor.session.setOption("useWorker", false)
@@ -261,7 +258,7 @@ function highlightError(editor, error) {
     }
 }
 
-function saveFile (editor) {
+function saveFile () {
     const contents = currentEditor.getValue();
 
     dialog.showSaveDialog({
@@ -485,7 +482,7 @@ function graphScreenshot(eqn, graphsToRender) {
     });  
 }
 
-function insertEquation(edior) {
+function insertEquation() {
     let eqnText = "\n$$y=e^{i\\pi} + 1 = 0$$"
     currentEditor.session.insert(currentEditor.getCursorPosition(), eqnText);
     let newCursorPos = currentEditor.getCursorPosition();
