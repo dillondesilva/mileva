@@ -136,8 +136,45 @@ function changeTab (tab) {
 
     for (let editor in editorInstances) {
         if (editor == tab) {
-            editorInstances[editor].focus();
+            currentEditor = editorInstances[editor];
         }
+    }
+}
+
+function parseLaTeX (editor, data) {
+    let graphsToRender = [];
+    let generator = new latexjs.HtmlGenerator({ hyphenate: false, CustomMacros: (function() {
+        let args = CustomMacros.args = {}, prototype = CustomMacros.prototype;
+        
+        function CustomMacros(generator) {
+            this.g = generator;
+        }
+        
+        args['graph'] = ['H', 'g']
+
+        prototype['graph'] = function(expr) {
+            let exprAnnotated = expr.querySelector('annotation');
+            expr = "y=" + exprAnnotated.innerHTML;
+            graphScreenshot(expr, graphsToRender);        
+        };
+        
+        return CustomMacros;
+    }())});
+
+    try {
+        generator = latexjs.parse(data, { generator: generator });
+
+        if (!renderContainsImage) {
+            let doc = generator.htmlDocument();
+            let stylesInfo = doc.head.innerHTML;
+            let content = doc.body.innerHTML;
+
+            return content;
+        }
+
+        editor.getSession().clearAnnotations();        
+    } catch (error) {
+        highlightError(editor, error);
     }
 }
 
@@ -158,10 +195,6 @@ function createEditorInstance (fileName=null) {
     editor.session.setMode("ace/mode/latex");
     editor.getSession().setUseSoftTabs(true);
 
-    editor.session.on("focus", () => {
-        currentEditor = editor;
-    })
-
     // Disabling worker so that our own LaTeX error annotations are not overriden
     // editor.session.setOption("useWorker", false)
     editor.session.setOption("useWorker", false);
@@ -170,55 +203,12 @@ function createEditorInstance (fileName=null) {
     // for the first editor instance which is rendered
     if (!Object.entries(editorInstances).length) {
         let text = editor.getValue();
-        let generator = new latexjs.HtmlGenerator({ hyphenate: false });
-
-        generator = latexjs.parse(text, { generator: generator });
-
-        let doc = generator.htmlDocument();
-
-        let stylesInfo = doc.head.innerHTML;
-        let content = doc.body.innerHTML;
-
-        previewDisplay.innerHTML = content;
+        previewDisplay.innerHTML = parseLaTeX(editor, text);
     }
 
     editor.session.on("change", (e) => {
         let text = editor.getValue();
-        let graphsToRender = [];
-        let generator = new latexjs.HtmlGenerator({ hyphenate: false, CustomMacros: (function() {
-            let args = CustomMacros.args = {}, prototype = CustomMacros.prototype;
-        
-            function CustomMacros(generator) {
-              this.g = generator;
-            }
-        
-            args['graph'] = ['H', 'g']
-
-            prototype['graph'] = function(expr) {
-                let exprAnnotated = expr.querySelector('annotation');
-                expr = "y=" + exprAnnotated.innerHTML;
-                graphScreenshot(expr, graphsToRender);        
-            };
-        
-            return CustomMacros;
-          }()) });
-
-
-        try {
-            generator = latexjs.parse(text, { generator: generator });
-
-            if (!renderContainsImage) {
-                let doc = generator.htmlDocument();
-                let stylesInfo = doc.head.innerHTML;
-                let content = doc.body.innerHTML;
-                previewDisplay.innerHTML = content;
-            }
-
-            editor.getSession().clearAnnotations();
-            
-        } catch (error) {
-            highlightError(editor, error);
-        }
+        previewDisplay.innerHTML = parseLaTeX(editor, text);
     });
 
     document.querySelector('.tabSelector .tabs ul').appendChild(new DOMParser().parseFromString(`<li><a data-target="${Object.entries(editorInstances).length >= 1 ? editorDiv.id : "editor"}"><span class="icon-text"><span class="tabNameText">${fileName === null ? "untitled.tex" : fileName}</span><span class="icon"><i class="fa-solid fa-xmark"></i></span></span></a></li>`, `text/html`).body.firstElementChild);
