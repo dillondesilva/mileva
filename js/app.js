@@ -139,6 +139,8 @@ function changeTab (tab) {
             currentEditor = editorInstances[editor];
         }
     }
+
+    previewDisplay.innerHTML = parseLaTeX(currentEditor, currentEditor.getValue());
 }
 
 function parseLaTeX (editor, data) {
@@ -218,9 +220,15 @@ function createEditorInstance (fileName=null) {
         el.onclick = () => { 
             changeTab(targetValue);
         };
+
+        el.querySelector('.icon-text .icon i').onclick = () => {
+            console.log(targetValue);
+        }
     });
 
     editorInstances[editorDiv != null ? editorDiv.id : "editor"] = editor;
+
+    if (editorDiv != null) changeTab(editorDiv.id);
 
     return editor;
 }
