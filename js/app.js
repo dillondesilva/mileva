@@ -40,7 +40,7 @@ let screenshot;
 let renderContainsImage = false;
 
 window.onload = () => {
-    createEditorInstance(`welcome.tex`);
+    currentEditor = createEditorInstance(`welcome.tex`);
     copyStylingFiles();
 
     const saveButton = document.querySelector('#save');
@@ -129,7 +129,6 @@ function createFolderClickHandeler (folderIcon) {
 
 function changeTab (tab) {
     document.querySelectorAll(".editor .editorArea").forEach(editorDiv => {
-        console.log(editorDiv);
         editorDiv.classList.add("hide");
     });
 
@@ -137,10 +136,47 @@ function changeTab (tab) {
 
     for (let editor in editorInstances) {
         if (editor == tab) {
-            editorInstances[editor].focus = true;
-        } else {
-            editorInstances[editor].focus = false;
+            currentEditor = editorInstances[editor];
         }
+    }
+
+    previewDisplay.innerHTML = parseLaTeX(currentEditor, currentEditor.getValue());
+}
+
+function parseLaTeX (editor, data) {
+    let graphsToRender = [];
+    let generator = new latexjs.HtmlGenerator({ hyphenate: false, CustomMacros: (function() {
+        let args = CustomMacros.args = {}, prototype = CustomMacros.prototype;
+        
+        function CustomMacros(generator) {
+            this.g = generator;
+        }
+        
+        args['graph'] = ['H', 'g']
+
+        prototype['graph'] = function(expr) {
+            let exprAnnotated = expr.querySelector('annotation');
+            expr = "y=" + exprAnnotated.innerHTML;
+            graphScreenshot(expr, graphsToRender);        
+        };
+        
+        return CustomMacros;
+    }())});
+
+    try {
+        generator = latexjs.parse(data, { generator: generator });
+
+        if (!renderContainsImage) {
+            let doc = generator.htmlDocument();
+            let stylesInfo = doc.head.innerHTML;
+            let content = doc.body.innerHTML;
+
+            return content;
+        }
+
+        editor.getSession().clearAnnotations();        
+    } catch (error) {
+        highlightError(editor, error);
     }
 }
 
@@ -161,10 +197,6 @@ function createEditorInstance (fileName=null) {
     editor.session.setMode("ace/mode/latex");
     editor.getSession().setUseSoftTabs(true);
 
-    editor.on("focus", function () {
-        currentEditor = editor;
-    });
-
     // Disabling worker so that our own LaTeX error annotations are not overriden
     // editor.session.setOption("useWorker", false)
     editor.session.setOption("useWorker", false);
@@ -173,55 +205,12 @@ function createEditorInstance (fileName=null) {
     // for the first editor instance which is rendered
     if (!Object.entries(editorInstances).length) {
         let text = editor.getValue();
-        let generator = new latexjs.HtmlGenerator({ hyphenate: false });
-
-        generator = latexjs.parse(text, { generator: generator });
-
-        let doc = generator.htmlDocument();
-
-        let stylesInfo = doc.head.innerHTML;
-        let content = doc.body.innerHTML;
-
-        previewDisplay.innerHTML = content;
+        previewDisplay.innerHTML = parseLaTeX(editor, text);
     }
 
     editor.session.on("change", (e) => {
         let text = editor.getValue();
-        let graphsToRender = [];
-        let generator = new latexjs.HtmlGenerator({ hyphenate: false, CustomMacros: (function() {
-            let args = CustomMacros.args = {}, prototype = CustomMacros.prototype;
-        
-            function CustomMacros(generator) {
-              this.g = generator;
-            }
-        
-            args['graph'] = ['H', 'g']
-
-            prototype['graph'] = function(expr) {
-                let exprAnnotated = expr.querySelector('annotation');
-                expr = "y=" + exprAnnotated.innerHTML;
-                graphScreenshot(expr, graphsToRender);        
-            };
-        
-            return CustomMacros;
-          }()) });
-
-
-        try {
-            generator = latexjs.parse(text, { generator: generator });
-
-            if (!renderContainsImage) {
-                let doc = generator.htmlDocument();
-                let stylesInfo = doc.head.innerHTML;
-                let content = doc.body.innerHTML;
-                previewDisplay.innerHTML = content;
-            }
-
-            editor.getSession().clearAnnotations();
-            
-        } catch (error) {
-            highlightError(editor, error);
-        }
+        previewDisplay.innerHTML = parseLaTeX(editor, text);
     });
 
     document.querySelector('.tabSelector .tabs ul').appendChild(new DOMParser().parseFromString(`<li><a data-target="${Object.entries(editorInstances).length >= 1 ? editorDiv.id : "editor"}"><span class="icon-text"><span class="tabNameText">${fileName === null ? "untitled.tex" : fileName}</span><span class="icon"><i class="fa-solid fa-xmark"></i></span></span></a></li>`, `text/html`).body.firstElementChild);
@@ -231,9 +220,15 @@ function createEditorInstance (fileName=null) {
         el.onclick = () => { 
             changeTab(targetValue);
         };
+
+        el.querySelector('.icon-text .icon i').onclick = () => {
+            console.log(targetValue);
+        }
     });
 
     editorInstances[editorDiv != null ? editorDiv.id : "editor"] = editor;
+
+    if (editorDiv != null) changeTab(editorDiv.id);
 
     return editor;
 }
@@ -261,7 +256,7 @@ function highlightError(editor, error) {
     }
 }
 
-function saveFile (editor) {
+function saveFile () {
     const contents = currentEditor.getValue();
 
     dialog.showSaveDialog({
@@ -485,7 +480,7 @@ function graphScreenshot(eqn, graphsToRender) {
     });  
 }
 
-function insertEquation(edior) {
+function insertEquation() {
     let eqnText = "\n$$y=e^{i\\pi} + 1 = 0$$"
     currentEditor.session.insert(currentEditor.getCursorPosition(), eqnText);
     let newCursorPos = currentEditor.getCursorPosition();
