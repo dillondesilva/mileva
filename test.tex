@@ -1,0 +1,68 @@
+\documentclass{report}
+
+
+\title{Head First Design Patterns}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Chapter One - Introduction to Design Patterns}
+
+When designing software, bear in mind some of the following:
+
+\begin{itemize}
+  \item Identify what stays the same and what varies
+  \begin{itemize}
+    \item{Encapsulate whatever stays the same}
+  \end{itemize}
+  \item Program to an interface
+  \begin{itemize}
+    \item{Define common methods in superclass and then implement these individually within the class}
+  \end{itemize}
+  \item Favour composition over inheritance
+  \begin{itemize}
+    \item Understand when to use a HAS-A relationship instead of an IS-A relationship
+    \item Construct objects from different classes over getting them to inherit
+  \end{itemize}
+\end{itemize}
+Also, remember The Strategy Pattern Design Principle which is where a family of algorithms is encapsulated and can be used interchangeably
+
+\section*{Chapter Two - The Observer Pattern}
+
+The observer pattern is analogous to people subscribing to a newsletter - we have a series of objects keeping tabs on any changes for a particular subject
+
+\begin{itemize}
+  \item We call the publisher of any new information the \textbf{subject}
+  \item We call the subscriber of any new information the \textbf{observer}
+  \item A more formal definition of the observer pattern is a \textbf{one-to-many dependency between objects so that when one object changes state, all dependents are also notified}
+\end{itemize}
+
+Java has a built-in API for creating observers/observables which has some drawbacks:
+
+\begin{itemize}
+  \item Observable has many crucial methods protected so you need to always subclass
+  \item Observable is a class so its very hard to add more methods underneath
+\end{itemize}
+
+Another golden design principle to remember from this chapter is that \textbf{loosely coupled designs for interacting objects is good}
+
+\section*{Chapter Three - The Decorator Pattern}
+
+The decorator pattern is analogous to finding ways to easily incorporate add-ons to a beverage from a coffee shop
+
+\begin{itemize}
+  \item Sometimes, inheritance is not the best choice of design for an object
+  \item Fundamentally, classes should be open for extension but closed for modification
+  \begin{itemize}
+    \item Using decorators allows us to continue adding onto a class appropriately
+  \end{itemize}
+  \item {More formally, decorators allow us to dynamically attach extra functionality to a class}
+\end{itemize}
+
+
+\end{document}
+          
+          
+          

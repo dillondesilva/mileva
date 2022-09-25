@@ -2,13 +2,19 @@ const { dialog } = require("@electron/remote");
 const fs = require('fs');
 const Swal = require('sweetalert2')
 const $ = require("jquery");
+const pdfjsLib = require("pdfjs-dist/build/pdf");
 const HOME_DIRECTORY = require('os').homedir();
 
 let previewDisplay = document.getElementById("previewDisplay");
 let folderSelector = document.getElementById("folderSelector");
 
+var exec = require('child_process').exec;
+
 let editorInstances = {};
 let currentEditor;
+
+// pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.js';
+pdfjsLib.GlobalWorkerOptions.workerSrc = `http://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.js`;
 
 const graphingToolPopover = document.getElementById('graphingToolPopover');
 const lookupInfoModal = document.getElementById('lookupInfoModal');
@@ -107,6 +113,9 @@ window.onload = () => {
             }
         });
     }
+
+    // previewDisplay.src = `${pathHandler.app.getPath('temp')}preview.pdf`; 
+
 }
 
 function createFolderClickHandeler (folderIcon) {
@@ -205,12 +214,14 @@ function createEditorInstance (fileName=null) {
     // for the first editor instance which is rendered
     if (!Object.entries(editorInstances).length) {
         let text = editor.getValue();
-        previewDisplay.innerHTML = parseLaTeX(editor, text);
+        updatePreview(editor, text);
+        // previewDisplay.innerHTML = parseLaTeX(editor, text);
     }
 
     editor.session.on("change", (e) => {
         let text = editor.getValue();
-        previewDisplay.innerHTML = parseLaTeX(editor, text);
+        updatePreview(editor, text);
+        // previewDisplay.innerHTML = parseLaTeX(editor, text);
     });
 
     document.querySelector('.tabSelector .tabs ul').appendChild(new DOMParser().parseFromString(`<li><a data-target="${Object.entries(editorInstances).length >= 1 ? editorDiv.id : "editor"}"><span class="icon-text"><span class="tabNameText">${fileName === null ? "untitled.tex" : fileName}</span><span class="icon"><i class="fa-solid fa-xmark"></i></span></span></a></li>`, `text/html`).body.firstElementChild);
@@ -254,6 +265,10 @@ function highlightError(editor, error) {
             type: "error" // also warning and information
         }]); 
     }
+}
+
+function reloadPreview() {
+    
 }
 
 function saveFile () {
@@ -490,16 +505,72 @@ function insertEquation() {
     currentEditor.focus();
 }
 
+function updatePreview(editor, text) {
+    const pathHandler = require("@electron/remote");
+    const tempPath = pathHandler.app.getPath('temp') + 'toExport.tex';
+
+    var fs = require('fs');
+
+    
+    fs.writeFile(tempPath,  text, { flag: 'w' }, err => {
+        if (err) {
+            console.error(err);
+        }
+    });
+
+    exec(`pandoc ${tempPath}`,
+        function (error, stdout, stderr) {
+            console.log('stdout: ' + stdout);
+            console.log('stderr: ' + stderr);
+            if (error !== null) {
+                console.log('exec error: ' + error);
+            }
+
+            previewDisplay.innerHTML = stdout;
+
+            // var loadingTask = pdfjsLib.getDocument(`${pathHandler.app.getPath('temp')}preview.pdf`);
+    
+            // loadingTask.promise.then((pdf) =>  {
+            //     pdf.getPage(1).then((page) => {
+            //         var scale = {scale: 5};
+            //         var viewport = page.getViewport(scale);
+            //         console.log(page)
+         
+            //         var context = canvas.getContext('2d');
+        
+            //         canvas.height = viewport.height;
+            //         canvas.width = viewport.width;
+        
+            //         // previewDisplay.style.width = Math.floor(viewport.width) + "px";
+            //         // previewDisplay.style.height =  Math.floor(viewport.height) + "px";
+        
+            //         page.render({canvasContext: context, viewport: viewport}).promise.then(() => {
+            //             previewDisplay.src = canvas.toDataURL('image/jpeg');
+            //         }).catch((err) => {
+            //             console.log(err)
+            //         }
+            //         );
+            //     })
+            // })
+        }
+    );
+
+    console.log(previewDisplay);
+    console.log(pdfjsLib);
+}
 
 function exportToPDF() {
-    const fs = require('fs');
-    const pdf = require('html-pdf');
-
+    const contents = currentEditor.getValue();
     const pathHandler = require("@electron/remote");
+    const tempPath = pathHandler.app.getPath('temp') + 'toExport.tex';
 
-    const finalHTML =  "<link rel=\"stylesheet\" href=\"article.css\"><link rel=\"stylesheet\" href=\"base.css\"><link rel=\"stylesheet\" href=\"book.css\"><link rel=\"stylesheet\" href=\"katex.css\">" + previewDisplay.innerHTML;
-
-    let tempPath = pathHandler.app.getPath('temp') + 'toRender.html';
+    var fs = require('fs');
+    
+    fs.writeFile(tempPath,  contents, { flag: 'w+' }, err => {
+        if (err) {
+            console.error(err);
+        }
+    });
   
     dialog.showSaveDialog({
         title: 'Select the File Path to export',
@@ -514,33 +585,18 @@ function exportToPDF() {
             }, ],
         properties: []
     }).then(file => {
-        // Stating whether dialog operation was cancelled or not.
-        //console.log(file.canceled);
         if (!file.canceled) {
             let filePath = file.filePath.toString();
-            fs.writeFile(tempPath,  finalHTML, { flag: 'w+' }, err => {
-                if (err) {
-                    console.error(err);
+            console.log(`Path for export: ${filePath}`);
+            exec(`pandoc ${tempPath} -o ${filePath}`,
+                function (error, stdout, stderr) {
+                    console.log('stdout: ' + stdout);
+                    console.log('stderr: ' + stderr);
+                    if (error !== null) {
+                        console.log('exec error: ' + error);
+                    }
                 }
-
-                var files = fs.readdirSync(pathHandler.app.getPath('temp'));
-                //console.log(files)
-                // file written successfully
-                var html = fs.readFileSync(tempPath, 'utf8');
-                var options = { format: 'A4', base: "file:///"+ pathHandler.app.getPath('temp'),   "border": {
-                    "top": "0.25in",            // default is 0, units: mm, cm, in, px
-                    "right": "0.5in",
-                    "bottom": "0.25in",
-                    "left": "0.5in"
-                  },
-                  "localUrlAccess": true
-                };
-                  
-                pdf.create(html, options).toFile(filePath, function(err, res) {
-                    if (err) return console.log(err);
-                    console.log(res); // { filename: '/app/businesscard.pdf' }
-                });
-            }); 
+            );
         }
     }).catch(err => {
         console.log(err)

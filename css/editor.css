@@ -72,6 +72,7 @@ html, body {
     overflow: scroll;
     padding: 1.5vw;
     position: absolute;
+    display: block;
 }
 
 .lineNumbers {

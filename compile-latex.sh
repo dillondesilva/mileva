@@ -1,0 +1,1 @@
+pandoc test.tex -o test.pdf
